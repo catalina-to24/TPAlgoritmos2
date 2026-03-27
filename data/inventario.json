@@ -1,0 +1,77 @@
+{
+  "paquetes": [
+    {
+      "id": "PKG-001",
+      "peso": 12.5,
+      "destino": "Buenos Aires",
+      "contenido": "Electronica",
+      "urgente": false
+    },
+    {
+      "id": "PKG-002",
+      "peso": 72.0,
+      "destino": "Cordoba",
+      "contenido": "Fragil",
+      "urgente": false
+    },
+    {
+      "id": "PKG-003",
+      "peso": 8.2,
+      "destino": "Rosario",
+      "contenido": "Alimentos",
+      "urgente": true
+    }
+  ],
+  "depositos": [
+    {
+      "id": 50,
+      "nombre": "Hub Central Buenos Aires",
+      "visitado": false,
+      "fechaUltimaAuditoria": "2026-01-10T09:00:00",
+      "conexiones": [20, 80]
+    },
+    {
+      "id": 20,
+      "nombre": "Deposito Cordoba",
+      "visitado": false,
+      "fechaUltimaAuditoria": "2026-03-20T11:00:00",
+      "conexiones": [50, 10, 30]
+    },
+    {
+      "id": 80,
+      "nombre": "Deposito Mendoza",
+      "visitado": false,
+      "fechaUltimaAuditoria": "2025-12-01T08:30:00",
+      "conexiones": [50, 90]
+    },
+    {
+      "id": 10,
+      "nombre": "Deposito Salta",
+      "visitado": false,
+      "fechaUltimaAuditoria": null,
+      "conexiones": [20]
+    },
+    {
+      "id": 30,
+      "nombre": "Deposito Santa Fe",
+      "visitado": false,
+      "fechaUltimaAuditoria": "2026-03-01T16:00:00",
+      "conexiones": [20]
+    },
+    {
+      "id": 90,
+      "nombre": "Deposito Neuquen",
+      "visitado": false,
+      "fechaUltimaAuditoria": "2026-02-01T14:00:00",
+      "conexiones": [80]
+    }
+  ],
+  "rutas": [
+    { "origen": 50, "destino": 20, "distanciaKm": 700 },
+    { "origen": 50, "destino": 80, "distanciaKm": 1050 },
+    { "origen": 20, "destino": 10, "distanciaKm": 740 },
+    { "origen": 20, "destino": 30, "distanciaKm": 330 },
+    { "origen": 80, "destino": 90, "distanciaKm": 520 },
+    { "origen": 30, "destino": 90, "distanciaKm": 980 }
+  ]
+}
