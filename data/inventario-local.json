@@ -1,0 +1,65 @@
+{
+  "paquetes": [
+    {
+      "id": "PKG-LOCAL-01",
+      "peso": 15.0,
+      "destino": "Buenos Aires",
+      "contenido": "Libros",
+      "urgente": false
+    },
+    {
+      "id": "PKG-LOCAL-02",
+      "peso": 60.0,
+      "destino": "Cordoba",
+      "contenido": "Insumos medicos",
+      "urgente": false
+    },
+    {
+      "id": "PKG-LOCAL-03",
+      "peso": 7.5,
+      "destino": "Rosario",
+      "contenido": "Documentacion",
+      "urgente": true
+    }
+  ],
+  "depositos": [
+    {
+      "id": 40,
+      "nombre": "Deposito Central",
+      "visitado": false,
+      "fechaUltimaAuditoria": "2026-03-01T10:00:00",
+      "conexiones": [20, 60]
+    },
+    {
+      "id": 20,
+      "nombre": "Deposito Norte",
+      "visitado": false,
+      "fechaUltimaAuditoria": null,
+      "conexiones": [40]
+    },
+    {
+      "id": 60,
+      "nombre": "Deposito Sur",
+      "visitado": false,
+      "fechaUltimaAuditoria": "2026-01-15T09:30:00",
+      "conexiones": [40]
+    }
+  ],
+  "rutas": [
+    {
+      "origen": 40,
+      "destino": 20,
+      "distanciaKm": 120
+    },
+    {
+      "origen": 40,
+      "destino": 60,
+      "distanciaKm": 200
+    },
+    {
+      "origen": 20,
+      "destino": 60,
+      "distanciaKm": 260
+    }
+  ]
+}
