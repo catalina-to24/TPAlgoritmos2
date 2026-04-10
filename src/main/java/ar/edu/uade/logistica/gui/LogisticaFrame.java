@@ -1,5 +1,11 @@
 package ar.edu.uade.logistica.gui;
 
+import ar.edu.uade.logistica.gui.ui.ModernButton;
+import ar.edu.uade.logistica.gui.ui.ModernTextField;
+import ar.edu.uade.logistica.gui.ui.PillTabs;
+import ar.edu.uade.logistica.gui.ui.RoundedPanel;
+import ar.edu.uade.logistica.gui.ui.Theme;
+import ar.edu.uade.logistica.model.Deposito;
 import ar.edu.uade.logistica.model.Inventario;
 import ar.edu.uade.logistica.model.Paquete;
 import ar.edu.uade.logistica.service.LogisticaService;
@@ -7,7 +13,6 @@ import ar.edu.uade.logistica.service.LogisticaService;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -15,20 +20,27 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.plaf.basic.BasicButtonUI;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.RenderingHints;
+import java.awt.geom.Ellipse2D;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -37,47 +49,37 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class LogisticaFrame extends JFrame {
-    private static final Color FONDO = new Color(240, 244, 248);
-    private static final Color TARJETA = Color.WHITE;
-    private static final Color BORDE = new Color(210, 218, 230);
-    private static final Color PRIMARIO = new Color(13, 71, 161);
-    private static final Color PRIMARIO_SUAVE = new Color(232, 240, 254);
-    private static final Color SECUNDARIO = new Color(0, 137, 123);
-    private static final Color BOTON_SECUNDARIO = Color.WHITE;
-    private static final Color TEXTO = new Color(28, 41, 56);
-    private static final Color TEXTO_SUAVE = new Color(92, 107, 128);
-    private static final Font TITULO_FONT = new Font("Segoe UI", Font.BOLD, 28);
-    private static final Font SECCION_FONT = new Font("Segoe UI", Font.BOLD, 18);
-    private static final Font BODY_FONT = new Font("Segoe UI", Font.PLAIN, 14);
-    private static final Font LABEL_FONT = new Font("Segoe UI", Font.BOLD, 13);
-    private static final Font METRICA_FONT = new Font("Segoe UI", Font.BOLD, 26);
+
     private static final DateTimeFormatter HORA_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private final LogisticaService service;
-    private final JLabel pendientesLabel = new JLabel("0");
-    private final JLabel camionLabel = new JLabel("0");
-    private final JLabel depositosLabel = new JLabel("0");
-    private final JLabel rutasLabel = new JLabel("0");
-    private final JLabel estadoLabel = new JLabel("Esperando inventario o carga manual.");
+
+    private final JLabel pendientesLabel = metricLabel();
+    private final JLabel camionLabel = metricLabel();
+    private final JLabel depositosLabel = metricLabel();
+    private final JLabel rutasLabel = metricLabel();
+
+    private final StatusPill estadoPill = new StatusPill("Esperando inventario o carga manual");
     private final JLabel ultimaActividadLabel = new JLabel("Sin actividad todavia.");
     private final JTextArea logArea = new JTextArea();
 
-    private final JTextField idField = new JTextField();
-    private final JTextField pesoField = new JTextField();
-    private final JTextField destinoField = new JTextField();
-    private final JTextField contenidoField = new JTextField();
-    private final JCheckBox urgenteCheck = new JCheckBox("Urgente");
+    private final ModernTextField idField = new ModernTextField("Ej. PKG-001");
+    private final ModernTextField pesoField = new ModernTextField("Ej. 12.5");
+    private final ModernTextField destinoField = new ModernTextField("Ej. Rosario");
+    private final ModernTextField contenidoField = new ModernTextField("Ej. Electronica");
+    private final JCheckBox urgenteCheck = new JCheckBox("Marcar como urgente");
 
-    private final JTextField nivelField = new JTextField();
-    private final JTextField origenField = new JTextField();
-    private final JTextField destinoRutaField = new JTextField();
+    private final ModernTextField nivelField = new ModernTextField("Ej. 2");
+    private final ModernTextField origenField = new ModernTextField("Ej. 50");
+    private final ModernTextField destinoRutaField = new ModernTextField("Ej. 80");
+
     private boolean inventarioCargado;
 
     public LogisticaFrame(LogisticaService service) {
         super("Logi-UADE 2026");
         this.service = service;
         configurarVentana();
-        configurarEstilosBase();
+        configurarElementos();
         setContentPane(crearContenido());
         actualizarEstado();
     }
@@ -87,6 +89,9 @@ public class LogisticaFrame extends JFrame {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {
         }
+        UIManager.put("ToolTip.background", Theme.TEXT);
+        UIManager.put("ToolTip.foreground", Color.WHITE);
+        UIManager.put("ToolTip.font", Theme.SMALL);
         SwingUtilities.invokeLater(() -> {
             LogisticaFrame frame = new LogisticaFrame(new LogisticaService());
             frame.setVisible(true);
@@ -95,115 +100,108 @@ public class LogisticaFrame extends JFrame {
 
     private void configurarVentana() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(1180, 780));
+        setMinimumSize(new Dimension(1240, 820));
         setLocationRelativeTo(null);
     }
 
-    private void configurarEstilosBase() {
-        getContentPane().setBackground(FONDO);
-
-        configurarMetrica(pendientesLabel);
-        configurarMetrica(camionLabel);
-        configurarMetrica(depositosLabel);
-        configurarMetrica(rutasLabel);
-
-        estadoLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        estadoLabel.setForeground(PRIMARIO.darker());
-        ultimaActividadLabel.setFont(BODY_FONT);
-        ultimaActividadLabel.setForeground(TEXTO_SUAVE);
-
-        configurarCampo(idField, "Ej. PKG-001");
-        configurarCampo(pesoField, "Ej. 12.5");
-        configurarCampo(destinoField, "Ej. Rosario");
-        configurarCampo(contenidoField, "Ej. Electronica");
-        configurarCampo(nivelField, "Ej. 2");
-        configurarCampo(origenField, "Ej. 50");
-        configurarCampo(destinoRutaField, "Ej. 80");
-
+    private void configurarElementos() {
         urgenteCheck.setOpaque(false);
-        urgenteCheck.setFont(BODY_FONT);
-        urgenteCheck.setForeground(TEXTO);
-        urgenteCheck.setText("Marcar como urgente");
+        urgenteCheck.setFont(Theme.BODY);
+        urgenteCheck.setForeground(Theme.TEXT);
+        urgenteCheck.setFocusPainted(false);
 
         logArea.setEditable(false);
-        logArea.setRows(14);
         logArea.setLineWrap(true);
         logArea.setWrapStyleWord(true);
-        logArea.setFont(new Font("Consolas", Font.PLAIN, 13));
-        logArea.setBackground(new Color(247, 250, 252));
-        logArea.setForeground(TEXTO);
-        logArea.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+        logArea.setFont(Theme.MONO);
+        logArea.setForeground(Theme.TEXT);
+        logArea.setBackground(Theme.SURFACE_ALT);
+        logArea.setBorder(BorderFactory.createEmptyBorder(12, 14, 12, 14));
+
+        ultimaActividadLabel.setFont(Theme.BODY);
+        ultimaActividadLabel.setForeground(Theme.TEXT_MUTED);
     }
 
     private JPanel crearContenido() {
-        JPanel root = new JPanel(new BorderLayout(16, 16));
-        root.setBackground(FONDO);
-        root.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
+        JPanel root = new JPanel(new BorderLayout(0, 20));
+        root.setBackground(Theme.BG);
+        root.setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
         root.add(crearHeader(), BorderLayout.NORTH);
-        root.add(crearCentro(), BorderLayout.CENTER);
+        root.add(crearCuerpo(), BorderLayout.CENTER);
         return root;
     }
 
-    private JPanel crearHeader() {
-        JPanel panel = crearTarjeta(new BorderLayout(18, 0));
-        panel.setBackground(PRIMARIO_SUAVE);
+    private JComponent crearHeader() {
+        RoundedPanel panel = new RoundedPanel(new BorderLayout(24, 0));
+        panel.setBorder(BorderFactory.createEmptyBorder(26, 28, 26, 28));
 
-        JPanel textoPanel = new JPanel();
-        textoPanel.setOpaque(false);
-        textoPanel.setLayout(new BoxLayout(textoPanel, BoxLayout.Y_AXIS));
+        JPanel izquierda = new JPanel();
+        izquierda.setOpaque(false);
+        izquierda.setLayout(new BoxLayout(izquierda, BoxLayout.Y_AXIS));
+
+        JPanel brand = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        brand.setOpaque(false);
+        brand.add(new LogoDot(14));
+        JLabel brandLabel = new JLabel("Logi-UADE 2026");
+        brandLabel.setFont(Theme.SMALL_BOLD);
+        brandLabel.setForeground(Theme.PRIMARY);
+        brand.add(brandLabel);
+        brand.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel titulo = new JLabel("Centro de Operaciones Logisticas");
-        titulo.setFont(TITULO_FONT);
-        titulo.setForeground(PRIMARIO.darker());
+        titulo.setFont(Theme.DISPLAY);
+        titulo.setForeground(Theme.TEXT);
+        titulo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        titulo.setBorder(BorderFactory.createEmptyBorder(6, 0, 4, 0));
 
-        JLabel descripcion = new JLabel("<html>Una vista mas clara para operar paquetes, camion, depositos y rutas desde la misma pantalla.</html>");
-        descripcion.setFont(BODY_FONT);
-        descripcion.setForeground(TEXTO_SUAVE);
+        JLabel descripcion = new JLabel("<html>Operacion unificada de paquetes, camion, depositos y rutas con metricas en vivo.</html>");
+        descripcion.setFont(Theme.BODY);
+        descripcion.setForeground(Theme.TEXT_MUTED);
+        descripcion.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel estado = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        estado.setOpaque(false);
-        estado.add(crearChip("Estado"));
-        estado.add(estadoLabel);
+        estadoPill.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        textoPanel.add(titulo);
-        textoPanel.add(Box.createVerticalStrut(6));
-        textoPanel.add(descripcion);
-        textoPanel.add(Box.createVerticalStrut(14));
-        textoPanel.add(estado);
+        izquierda.add(brand);
+        izquierda.add(titulo);
+        izquierda.add(descripcion);
+        izquierda.add(Box.createVerticalStrut(14));
+        izquierda.add(estadoPill);
 
         JPanel acciones = new JPanel(new GridLayout(3, 1, 0, 10));
         acciones.setOpaque(false);
 
-        JButton cargarInventarioButton = crearBotonPrimario("Cargar inventario JSON");
-        cargarInventarioButton.addActionListener(e -> cargarInventarioDesdeArchivo());
+        ModernButton cargarInventarioBtn = new ModernButton("Cargar inventario JSON", ModernButton.Variant.PRIMARY);
+        cargarInventarioBtn.addActionListener(e -> cargarInventarioDesdeArchivo());
 
-        JButton demoButton = crearBotonSecundario("Cargar JSON local");
-        demoButton.addActionListener(e -> cargarInventarioDemo());
+        ModernButton demoBtn = new ModernButton("Cargar JSON local", ModernButton.Variant.SECONDARY);
+        demoBtn.addActionListener(e -> cargarInventarioDemo());
 
-        JButton limpiarLogButton = crearBotonSecundario("Limpiar actividad");
-        limpiarLogButton.addActionListener(e -> limpiarActividad());
+        ModernButton limpiarBtn = new ModernButton("Limpiar actividad", ModernButton.Variant.GHOST);
+        limpiarBtn.addActionListener(e -> limpiarActividad());
 
-        acciones.add(cargarInventarioButton);
-        acciones.add(demoButton);
-        acciones.add(limpiarLogButton);
+        acciones.add(cargarInventarioBtn);
+        acciones.add(demoBtn);
+        acciones.add(limpiarBtn);
 
-        panel.add(textoPanel, BorderLayout.CENTER);
-        panel.add(acciones, BorderLayout.EAST);
+        JPanel accionesWrapper = new JPanel(new BorderLayout());
+        accionesWrapper.setOpaque(false);
+        accionesWrapper.add(acciones, BorderLayout.NORTH);
+
+        panel.add(izquierda, BorderLayout.CENTER);
+        panel.add(accionesWrapper, BorderLayout.EAST);
         return panel;
     }
 
-    private JSplitPane crearCentro() {
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, crearTabs(), crearSidebar());
-        splitPane.setResizeWeight(0.7);
-        splitPane.setBorder(BorderFactory.createEmptyBorder());
-        splitPane.setOpaque(false);
-        splitPane.setBackground(FONDO);
-        return splitPane;
+    private JComponent crearCuerpo() {
+        JPanel cuerpo = new JPanel(new BorderLayout(20, 0));
+        cuerpo.setOpaque(false);
+        cuerpo.add(crearPaneles(), BorderLayout.CENTER);
+        cuerpo.add(crearSidebar(), BorderLayout.EAST);
+        return cuerpo;
     }
 
-    private JTabbedPane crearTabs() {
-        JTabbedPane tabs = new JTabbedPane();
-        tabs.setFont(new Font("Segoe UI", Font.BOLD, 13));
+    private JComponent crearPaneles() {
+        PillTabs tabs = new PillTabs();
         tabs.addTab("Paquetes", crearPanelPaquetes());
         tabs.addTab("Camion", crearPanelCamion());
         tabs.addTab("Depositos", crearPanelDepositos());
@@ -211,329 +209,349 @@ public class LogisticaFrame extends JFrame {
         return tabs;
     }
 
-    private JPanel crearPanelPaquetes() {
-        JPanel panel = crearPanelTab();
+    private JComponent crearPanelPaquetes() {
+        JPanel contenedor = verticalContainer();
 
-        JPanel formulario = crearTarjeta(new BorderLayout(0, 12));
-        formulario.add(crearDescripcionSeccion("Alta manual de paquetes", "Carga paquetes al centro. Los urgentes o de mas de 50 kg suben con prioridad."), BorderLayout.NORTH);
+        RoundedPanel formulario = crearCard();
+        formulario.setLayout(new BorderLayout(0, 18));
+        formulario.add(headerSeccion("Alta manual de paquetes",
+                "Carga paquetes al centro. Urgentes o mas de 50 kg suben con prioridad."), BorderLayout.NORTH);
+        formulario.add(construirFormularioPaquete(), BorderLayout.CENTER);
 
-        JPanel campos = new JPanel(new GridLayout(5, 2, 10, 10));
-        campos.setOpaque(false);
-        campos.add(crearLabelCampo("ID"));
-        campos.add(idField);
-        campos.add(crearLabelCampo("Peso"));
-        campos.add(pesoField);
-        campos.add(crearLabelCampo("Destino"));
-        campos.add(destinoField);
-        campos.add(crearLabelCampo("Contenido"));
-        campos.add(contenidoField);
-        campos.add(crearLabelCampo("Prioridad"));
-        campos.add(urgenteCheck);
-        formulario.add(campos, BorderLayout.CENTER);
+        RoundedPanel flujo = crearCard();
+        flujo.setLayout(new BorderLayout(0, 16));
+        flujo.add(headerSeccion("Flujo del centro",
+                "Procesa el siguiente paquete y cargalo al camion en un solo paso."), BorderLayout.NORTH);
 
-        JPanel acciones = crearTarjeta(new BorderLayout(0, 12));
-        acciones.add(crearDescripcionSeccion("Flujo del centro", "Procesa el siguiente paquete y cargalo al camion con un solo paso."), BorderLayout.NORTH);
+        JPanel botones = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        botones.setOpaque(false);
+        ModernButton agregar = new ModernButton("Agregar al centro", ModernButton.Variant.PRIMARY);
+        agregar.addActionListener(e -> agregarPaqueteManual());
+        ModernButton procesar = new ModernButton("Procesar y cargar", ModernButton.Variant.SECONDARY);
+        procesar.addActionListener(e -> procesarYCargar());
+        botones.add(agregar);
+        botones.add(procesar);
 
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        flujo.add(botones, BorderLayout.CENTER);
+        flujo.add(hintLabel("Secuencia sugerida: alta manual, verificar pendientes, procesar y cargar."),
+                BorderLayout.SOUTH);
+
+        contenedor.add(formulario);
+        contenedor.add(Box.createVerticalStrut(18));
+        contenedor.add(flujo);
+        contenedor.add(Box.createVerticalGlue());
+        return contenedor;
+    }
+
+    private JComponent construirFormularioPaquete() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setOpaque(false);
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.insets = new Insets(8, 0, 8, 12);
+        gc.anchor = GridBagConstraints.WEST;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+
+        String[] labels = {"ID", "Peso", "Destino", "Contenido"};
+        ModernTextField[] fields = {idField, pesoField, destinoField, contenidoField};
+        for (int i = 0; i < labels.length; i++) {
+            gc.gridy = i;
+            gc.gridx = 0;
+            gc.weightx = 0;
+            panel.add(labelCampo(labels[i]), gc);
+            gc.gridx = 1;
+            gc.weightx = 1;
+            panel.add(fields[i], gc);
+        }
+        gc.gridy = labels.length;
+        gc.gridx = 0;
+        gc.weightx = 0;
+        panel.add(labelCampo("Prioridad"), gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        panel.add(urgenteCheck, gc);
+        return panel;
+    }
+
+    private JComponent crearPanelCamion() {
+        JPanel contenedor = verticalContainer();
+
+        RoundedPanel card = crearCard();
+        card.setLayout(new BorderLayout(0, 18));
+        card.add(headerSeccion("Operacion LIFO del camion",
+                "El ultimo paquete en entrar es el primero en salir o deshacerse."), BorderLayout.NORTH);
+
+        JPanel botones = new JPanel(new GridLayout(1, 3, 12, 0));
         botones.setOpaque(false);
 
-        JButton altaButton = crearBotonPrimario("Agregar al centro");
-        altaButton.addActionListener(e -> agregarPaqueteManual());
+        ModernButton ver = new ModernButton("Ver carga actual", ModernButton.Variant.PRIMARY);
+        ver.addActionListener(e -> verCargaCamion());
 
-        JButton procesarButton = crearBotonSecundario("Procesar y cargar");
-        procesarButton.addActionListener(e -> procesarYCargar());
+        ModernButton deshacer = new ModernButton("Deshacer ultima carga", ModernButton.Variant.SECONDARY);
+        deshacer.addActionListener(e -> ejecutarAccion("Ultima carga removida", service::deshacerUltimaCargaCamion));
 
-        botones.add(altaButton);
-        botones.add(procesarButton);
+        ModernButton descargar = new ModernButton("Descargar tope", ModernButton.Variant.SECONDARY);
+        descargar.addActionListener(e -> ejecutarAccion("Paquete descargado", service::descargarCamion));
 
-        acciones.add(botones, BorderLayout.CENTER);
-        acciones.add(crearTextoSecundario("Secuencia recomendada: alta manual, validacion del contador de pendientes y procesamiento al camion."), BorderLayout.SOUTH);
+        botones.add(ver);
+        botones.add(deshacer);
+        botones.add(descargar);
 
-        panel.add(formulario);
-        panel.add(Box.createVerticalStrut(14));
-        panel.add(acciones);
-        panel.add(Box.createVerticalGlue());
-        return panel;
+        card.add(botones, BorderLayout.CENTER);
+        card.add(hintLabel("Antes de descargar, revisa el orden en el panel de actividad."), BorderLayout.SOUTH);
+
+        contenedor.add(card);
+        contenedor.add(Box.createVerticalGlue());
+        return contenedor;
     }
 
-    private JPanel crearPanelCamion() {
-        JPanel panel = crearPanelTab();
+    private JComponent crearPanelDepositos() {
+        JPanel contenedor = verticalContainer();
 
-        JPanel acciones = crearTarjeta(new BorderLayout(0, 12));
-        acciones.add(crearDescripcionSeccion("Operacion LIFO del camion", "El ultimo paquete en entrar es el primero en salir o deshacerse."), BorderLayout.NORTH);
+        RoundedPanel auditoria = crearCard();
+        auditoria.setLayout(new BorderLayout(0, 16));
+        auditoria.add(headerSeccion("Auditoria post-orden del ABB",
+                "Marca como visitados los depositos sin auditoria en los ultimos 30 dias."), BorderLayout.NORTH);
+        ModernButton auditarBtn = new ModernButton("Ejecutar auditoria", ModernButton.Variant.PRIMARY);
+        auditarBtn.addActionListener(e -> auditarDepositos());
+        JPanel leftAlign = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        leftAlign.setOpaque(false);
+        leftAlign.add(auditarBtn);
+        auditoria.add(leftAlign, BorderLayout.CENTER);
 
-        JPanel botones = new JPanel(new GridLayout(3, 1, 0, 10));
-        botones.setOpaque(false);
+        RoundedPanel nivel = crearCard();
+        nivel.setLayout(new BorderLayout(0, 16));
+        nivel.add(headerSeccion("Consulta por nivel",
+                "Lista los depositos en un nivel del arbol (raiz = nivel 0)."), BorderLayout.NORTH);
 
-        JButton verCargaButton = crearBotonPrimario("Ver carga actual");
-        verCargaButton.addActionListener(e -> verCargaCamion());
+        JPanel nivelForm = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        nivelForm.setOpaque(false);
+        nivelField.setPreferredSize(new Dimension(140, 40));
+        ModernButton nivelBtn = new ModernButton("Consultar nivel", ModernButton.Variant.SECONDARY);
+        nivelBtn.addActionListener(e -> consultarNivel());
+        nivelForm.add(labelCampo("Nivel"));
+        nivelForm.add(nivelField);
+        nivelForm.add(nivelBtn);
+        nivel.add(nivelForm, BorderLayout.CENTER);
 
-        JButton deshacerButton = crearBotonSecundario("Deshacer ultima carga");
-        deshacerButton.addActionListener(e -> ejecutarAccion("Ultima carga removida", service::deshacerUltimaCargaCamion));
-
-        JButton descargarButton = crearBotonSecundario("Descargar tope");
-        descargarButton.addActionListener(e -> ejecutarAccion("Paquete descargado", service::descargarCamion));
-
-        botones.add(verCargaButton);
-        botones.add(deshacerButton);
-        botones.add(descargarButton);
-
-        acciones.add(botones, BorderLayout.CENTER);
-        acciones.add(crearTextoSecundario("Antes de descargar, revisa el orden actual desde el panel de actividad para evitar errores de despacho."), BorderLayout.SOUTH);
-
-        panel.add(acciones);
-        panel.add(Box.createVerticalGlue());
-        return panel;
+        contenedor.add(auditoria);
+        contenedor.add(Box.createVerticalStrut(18));
+        contenedor.add(nivel);
+        contenedor.add(Box.createVerticalGlue());
+        return contenedor;
     }
 
-    private JPanel crearPanelDepositos() {
-        JPanel panel = crearPanelTab();
+    private JComponent crearPanelRutas() {
+        JPanel contenedor = verticalContainer();
 
-        JPanel acciones = crearTarjeta(new BorderLayout(0, 12));
-        acciones.add(crearDescripcionSeccion("ABB y auditoria postorden", "Audita depositos pendientes y consulta nodos por nivel del arbol."), BorderLayout.NORTH);
+        RoundedPanel card = crearCard();
+        card.setLayout(new BorderLayout(0, 18));
+        card.add(headerSeccion("Distancia minima entre depositos",
+                "Calcula la mejor ruta sobre el grafo usando Dijkstra."), BorderLayout.NORTH);
 
-        JButton auditarButton = crearBotonPrimario("Ejecutar auditoria");
-        auditarButton.addActionListener(e -> auditarDepositos());
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.insets = new Insets(8, 0, 8, 12);
+        gc.anchor = GridBagConstraints.WEST;
+        gc.fill = GridBagConstraints.HORIZONTAL;
 
-        JPanel nivelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        nivelPanel.setOpaque(false);
-        nivelField.setPreferredSize(new Dimension(140, 34));
+        gc.gridy = 0;
+        gc.gridx = 0;
+        form.add(labelCampo("Deposito origen"), gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        form.add(origenField, gc);
 
-        JButton nivelButton = crearBotonSecundario("Consultar nivel");
-        nivelButton.addActionListener(e -> consultarNivel());
+        gc.gridy = 1;
+        gc.gridx = 0;
+        gc.weightx = 0;
+        form.add(labelCampo("Deposito destino"), gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        form.add(destinoRutaField, gc);
 
-        nivelPanel.add(crearLabelCampo("Nivel"));
-        nivelPanel.add(nivelField);
-        nivelPanel.add(nivelButton);
+        ModernButton calcular = new ModernButton("Calcular distancia minima", ModernButton.Variant.PRIMARY);
+        calcular.addActionListener(e -> calcularDistanciaMinima());
+        JPanel botonWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        botonWrap.setOpaque(false);
+        botonWrap.add(calcular);
 
-        acciones.add(auditarButton, BorderLayout.CENTER);
-        acciones.add(nivelPanel, BorderLayout.SOUTH);
+        card.add(form, BorderLayout.CENTER);
+        card.add(botonWrap, BorderLayout.SOUTH);
 
-        panel.add(acciones);
-        panel.add(Box.createVerticalGlue());
-        return panel;
+        contenedor.add(card);
+        contenedor.add(Box.createVerticalGlue());
+        return contenedor;
     }
 
-    private JPanel crearPanelRutas() {
-        JPanel panel = crearPanelTab();
-
-        JPanel formulario = crearTarjeta(new BorderLayout(0, 12));
-        formulario.add(crearDescripcionSeccion("Distancia minima", "Consulta la mejor ruta entre dos depositos cargados en el grafo."), BorderLayout.NORTH);
-
-        JPanel campos = new JPanel(new GridLayout(3, 2, 10, 10));
-        campos.setOpaque(false);
-        campos.add(crearLabelCampo("Deposito origen"));
-        campos.add(origenField);
-        campos.add(crearLabelCampo("Deposito destino"));
-        campos.add(destinoRutaField);
-
-        JButton calcularButton = crearBotonPrimario("Calcular distancia minima");
-        calcularButton.addActionListener(e -> calcularDistanciaMinima());
-
-        campos.add(new JLabel(""));
-        campos.add(calcularButton);
-
-        formulario.add(campos, BorderLayout.CENTER);
-        panel.add(formulario);
-        panel.add(Box.createVerticalGlue());
-        return panel;
-    }
-
-    private JPanel crearSidebar() {
+    private JComponent crearSidebar() {
         JPanel sidebar = new JPanel();
         sidebar.setOpaque(false);
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-        sidebar.add(crearPanelMetricas());
-        sidebar.add(Box.createVerticalStrut(14));
-        sidebar.add(crearPanelAccionesRapidas());
-        sidebar.add(Box.createVerticalStrut(14));
-        sidebar.add(crearPanelActividad());
+        sidebar.setPreferredSize(new Dimension(360, 0));
+
+        sidebar.add(crearResumen());
+        sidebar.add(Box.createVerticalStrut(18));
+        sidebar.add(crearAccionesRapidas());
+        sidebar.add(Box.createVerticalStrut(18));
+        sidebar.add(crearActividad());
         return sidebar;
     }
 
-    private JPanel crearPanelMetricas() {
-        JPanel panel = crearTarjeta(new BorderLayout(0, 14));
-        panel.add(crearTituloSeccion("Resumen en vivo"), BorderLayout.NORTH);
+    private JComponent crearResumen() {
+        RoundedPanel card = crearCard();
+        card.setLayout(new BorderLayout(0, 18));
+        card.add(headerSeccion("Resumen en vivo",
+                "Contadores actualizados tras cada operacion."), BorderLayout.NORTH);
 
-        JPanel grid = new JPanel(new GridLayout(2, 2, 12, 12));
+        JPanel grid = new JPanel(new GridLayout(2, 2, 14, 14));
         grid.setOpaque(false);
-        grid.add(crearMetricaCard("Pendientes", pendientesLabel, "Centro"));
-        grid.add(crearMetricaCard("En camion", camionLabel, "LIFO"));
-        grid.add(crearMetricaCard("Depositos", depositosLabel, "ABB"));
-        grid.add(crearMetricaCard("Rutas", rutasLabel, "Grafo"));
+        grid.add(metricCard("Pendientes", pendientesLabel, "Centro", Theme.PRIMARY));
+        grid.add(metricCard("En camion", camionLabel, "LIFO", Theme.SUCCESS));
+        grid.add(metricCard("Depositos", depositosLabel, "ABB", new Color(0x8B5CF6)));
+        grid.add(metricCard("Rutas", rutasLabel, "Grafo", Theme.WARNING));
 
         JPanel footer = new JPanel();
         footer.setOpaque(false);
         footer.setLayout(new BoxLayout(footer, BoxLayout.Y_AXIS));
-        footer.add(crearTextoSecundario("Ultima actividad"));
+        JLabel titleFooter = new JLabel("Ultima actividad");
+        titleFooter.setFont(Theme.SMALL_BOLD);
+        titleFooter.setForeground(Theme.TEXT_SUBTLE);
+        footer.add(titleFooter);
         footer.add(Box.createVerticalStrut(4));
         footer.add(ultimaActividadLabel);
+        footer.setBorder(BorderFactory.createEmptyBorder(12, 0, 0, 0));
 
-        panel.add(grid, BorderLayout.CENTER);
-        panel.add(footer, BorderLayout.SOUTH);
-        return panel;
+        card.add(grid, BorderLayout.CENTER);
+        card.add(footer, BorderLayout.SOUTH);
+        return card;
     }
 
-    private JPanel crearPanelAccionesRapidas() {
-        JPanel panel = crearTarjeta(new BorderLayout(0, 12));
-        panel.add(crearTituloSeccion("Acciones rapidas"), BorderLayout.NORTH);
+    private JComponent crearAccionesRapidas() {
+        RoundedPanel card = crearCard();
+        card.setLayout(new BorderLayout(0, 14));
+        card.add(headerSeccion("Acciones rapidas", "Atajos a las operaciones mas usadas."), BorderLayout.NORTH);
 
-        JPanel acciones = new JPanel(new GridLayout(3, 1, 0, 8));
-        acciones.setOpaque(false);
+        JPanel panel = new JPanel(new GridLayout(3, 1, 0, 8));
+        panel.setOpaque(false);
 
-        JButton procesarButton = crearBotonPrimario("Procesar siguiente");
-        procesarButton.addActionListener(e -> procesarYCargar());
+        ModernButton procesarBtn = new ModernButton("Procesar siguiente", ModernButton.Variant.PRIMARY);
+        procesarBtn.addActionListener(e -> procesarYCargar());
 
-        JButton verCargaButton = crearBotonSecundario("Ver carga camion");
-        verCargaButton.addActionListener(e -> verCargaCamion());
+        ModernButton verCargaBtn = new ModernButton("Ver carga camion", ModernButton.Variant.SECONDARY);
+        verCargaBtn.addActionListener(e -> verCargaCamion());
 
-        JButton auditarButton = crearBotonSecundario("Auditar depositos");
-        auditarButton.addActionListener(e -> auditarDepositos());
+        ModernButton auditarBtn = new ModernButton("Auditar depositos", ModernButton.Variant.SECONDARY);
+        auditarBtn.addActionListener(e -> auditarDepositos());
 
-        acciones.add(procesarButton);
-        acciones.add(verCargaButton);
-        acciones.add(auditarButton);
+        panel.add(procesarBtn);
+        panel.add(verCargaBtn);
+        panel.add(auditarBtn);
 
-        panel.add(acciones, BorderLayout.CENTER);
-        return panel;
+        card.add(panel, BorderLayout.CENTER);
+        return card;
     }
 
-    private JPanel crearPanelActividad() {
-        JPanel panel = crearTarjeta(new BorderLayout(0, 12));
-        panel.add(crearTituloSeccion("Actividad reciente"), BorderLayout.NORTH);
+    private JComponent crearActividad() {
+        RoundedPanel card = crearCard();
+        card.setLayout(new BorderLayout(0, 12));
+        card.add(headerSeccion("Actividad reciente",
+                "Historial cronologico de operaciones sobre el sistema."), BorderLayout.NORTH);
 
-        JScrollPane scrollPane = new JScrollPane(logArea);
-        scrollPane.setBorder(BorderFactory.createLineBorder(BORDE));
-        scrollPane.getViewport().setBackground(logArea.getBackground());
+        JScrollPane scroll = new JScrollPane(logArea,
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setBorder(BorderFactory.createLineBorder(Theme.BORDER));
+        scroll.getViewport().setBackground(logArea.getBackground());
+        scroll.setPreferredSize(new Dimension(0, 260));
+        scroll.getVerticalScrollBar().setUI(new SlimScrollBarUI());
+        scroll.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0));
 
-        panel.add(scrollPane, BorderLayout.CENTER);
-        panel.add(crearTextoSecundario("El historial del costado te deja seguir cada accion sin cambiar de pestana."), BorderLayout.SOUTH);
-        return panel;
+        card.add(scroll, BorderLayout.CENTER);
+        return card;
     }
 
-    private JPanel crearPanelTab() {
+    private JPanel verticalContainer() {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
         return panel;
     }
 
-    private JPanel crearTarjeta(BorderLayout layout) {
-        JPanel panel = new JPanel(layout);
-        panel.setBackground(TARJETA);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(BORDE),
-                BorderFactory.createEmptyBorder(18, 18, 18, 18)
-        ));
+    private RoundedPanel crearCard() {
+        RoundedPanel panel = new RoundedPanel();
+        panel.setBorder(BorderFactory.createEmptyBorder(22, 24, 22, 24));
         return panel;
     }
 
-    private void configurarCampo(JTextField field, String tooltip) {
-        field.setFont(BODY_FONT);
-        field.setForeground(TEXTO);
-        field.setBackground(Color.WHITE);
-        field.setToolTipText(tooltip);
-        field.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(BORDE),
-                BorderFactory.createEmptyBorder(8, 10, 8, 10)
-        ));
-    }
-
-    private void configurarMetrica(JLabel label) {
-        label.setFont(METRICA_FONT);
-        label.setForeground(PRIMARIO.darker());
-    }
-
-    private JLabel crearTituloSeccion(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(SECCION_FONT);
-        label.setForeground(TEXTO);
-        return label;
-    }
-
-    private JComponent crearDescripcionSeccion(String title, String description) {
+    private JComponent headerSeccion(String title, String description) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.add(crearTituloSeccion(title));
-        panel.add(Box.createVerticalStrut(6));
-        panel.add(crearTextoSecundario(description));
-        return panel;
-    }
-
-    private JLabel crearTextoSecundario(String text) {
-        JLabel label = new JLabel("<html>" + text + "</html>");
-        label.setFont(BODY_FONT);
-        label.setForeground(TEXTO_SUAVE);
-        return label;
-    }
-
-    private JLabel crearLabelCampo(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(LABEL_FONT);
-        label.setForeground(TEXTO);
-        return label;
-    }
-
-    private JLabel crearChip(String text) {
-        JLabel label = new JLabel(text);
-        label.setOpaque(true);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        label.setForeground(SECUNDARIO.darker());
-        label.setBackground(new Color(223, 245, 239));
-        label.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
-        return label;
-    }
-
-    private JPanel crearMetricaCard(String title, JLabel valueLabel, String chip) {
-        JPanel panel = new JPanel(new BorderLayout(0, 10));
-        panel.setOpaque(true);
-        panel.setBackground(new Color(247, 250, 252));
-        panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(BORDE),
-                BorderFactory.createEmptyBorder(12, 12, 12, 12)
-        ));
 
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(LABEL_FONT);
-        titleLabel.setForeground(TEXTO_SUAVE);
+        titleLabel.setFont(Theme.H2);
+        titleLabel.setForeground(Theme.TEXT);
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel footer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        footer.setOpaque(false);
-        footer.add(crearChip(chip));
+        JLabel descLabel = new JLabel("<html>" + description + "</html>");
+        descLabel.setFont(Theme.BODY);
+        descLabel.setForeground(Theme.TEXT_MUTED);
+        descLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        descLabel.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
 
-        panel.add(titleLabel, BorderLayout.NORTH);
-        panel.add(valueLabel, BorderLayout.CENTER);
-        panel.add(footer, BorderLayout.SOUTH);
+        panel.add(titleLabel);
+        panel.add(descLabel);
         return panel;
     }
 
-    private JButton crearBotonPrimario(String text) {
-        JButton button = new JButton(text);
-        configurarBoton(button, PRIMARIO, Color.WHITE);
-        return button;
+    private JLabel labelCampo(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(Theme.H3);
+        label.setForeground(Theme.TEXT);
+        label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+        return label;
     }
 
-    private JButton crearBotonSecundario(String text) {
-        JButton button = new JButton(text);
-        configurarBoton(button, BOTON_SECUNDARIO, PRIMARIO.darker());
-        return button;
+    private JLabel hintLabel(String text) {
+        JLabel label = new JLabel("<html>" + text + "</html>");
+        label.setFont(Theme.SMALL);
+        label.setForeground(Theme.TEXT_SUBTLE);
+        label.setBorder(BorderFactory.createEmptyBorder(12, 0, 0, 0));
+        return label;
     }
 
-    private void configurarBoton(JButton button, Color fondo, Color texto) {
-        button.setUI(new BasicButtonUI());
-        button.setOpaque(true);
-        button.setContentAreaFilled(true);
-        button.setBorderPainted(true);
-        button.setFocusPainted(false);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        button.setBackground(fondo);
-        button.setForeground(texto);
-        button.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(PRIMARIO.darker()),
-                BorderFactory.createEmptyBorder(10, 14, 10, 14)
-        ));
+    private JLabel metricLabel() {
+        JLabel label = new JLabel("0");
+        label.setFont(Theme.METRIC);
+        label.setForeground(Theme.TEXT);
+        return label;
+    }
+
+    private JComponent metricCard(String title, JLabel valueLabel, String chip, Color accent) {
+        RoundedPanel card = new RoundedPanel(Theme.RADIUS_CARD, 0);
+        card.setFillColor(Theme.SURFACE_ALT);
+        card.setBorderColor(Theme.BORDER);
+        card.setLayout(new BorderLayout());
+        card.setBorder(BorderFactory.createEmptyBorder(16, 18, 16, 18));
+
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(Theme.SMALL_BOLD);
+        titleLabel.setForeground(Theme.TEXT_MUTED);
+
+        JPanel top = new JPanel(new BorderLayout());
+        top.setOpaque(false);
+        top.add(titleLabel, BorderLayout.WEST);
+        top.add(new ColorDot(accent, 8), BorderLayout.EAST);
+
+        JLabel chipLabel = new JLabel(chip);
+        chipLabel.setFont(Theme.SMALL_BOLD);
+        chipLabel.setForeground(accent);
+
+        card.add(top, BorderLayout.NORTH);
+        card.add(valueLabel, BorderLayout.CENTER);
+        card.add(chipLabel, BorderLayout.SOUTH);
+        return card;
     }
 
     private void cargarInventarioDesdeArchivo() {
@@ -611,9 +629,9 @@ public class LogisticaFrame extends JFrame {
             actualizarEstado();
             return;
         }
-        appendLog("Carga actual del camion:");
+        appendLog("Carga actual del camion (tope primero):");
         for (Paquete<?> paquete : carga) {
-            appendLog(" - " + paquete);
+            appendLog("  - " + paquete);
         }
         actualizarEstado();
     }
@@ -635,14 +653,14 @@ public class LogisticaFrame extends JFrame {
     private void consultarNivel() {
         try {
             int nivel = Integer.parseInt(nivelField.getText().trim());
-            List<String> depositos = service.depositosPorNivel(nivel);
+            List<Deposito> depositos = service.depositosPorNivel(nivel);
             if (depositos.isEmpty()) {
                 appendLog("No hay depositos en el nivel " + nivel + ".");
                 return;
             }
             appendLog("Depositos del nivel " + nivel + ":");
-            for (String deposito : depositos) {
-                appendLog(" - " + deposito);
+            for (Deposito deposito : depositos) {
+                appendLog("  - " + deposito.getId() + " - " + deposito.getNombre());
             }
         } catch (Exception ex) {
             mostrarError(ex);
@@ -683,13 +701,13 @@ public class LogisticaFrame extends JFrame {
         }
 
         if (pendientes > 0) {
-            estadoLabel.setText("Centro con paquetes listos para procesar.");
+            estadoPill.set("Centro con paquetes listos para procesar", Theme.PRIMARY, Theme.PRIMARY_SOFT);
         } else if (enCamion > 0) {
-            estadoLabel.setText("Camion con carga lista para despacho.");
+            estadoPill.set("Camion con carga lista para despacho", Theme.SUCCESS, Theme.SUCCESS_SOFT);
         } else if (inventarioCargado) {
-            estadoLabel.setText("Inventario cargado. Sistema sin pendientes.");
+            estadoPill.set("Inventario cargado. Sistema sin pendientes", Theme.SUCCESS, Theme.SUCCESS_SOFT);
         } else {
-            estadoLabel.setText("Esperando inventario o carga manual.");
+            estadoPill.set("Esperando inventario o carga manual", Theme.TEXT_MUTED, Theme.SURFACE_ALT);
         }
     }
 
@@ -721,5 +739,129 @@ public class LogisticaFrame extends JFrame {
     @FunctionalInterface
     private interface AccionConResultado {
         Object ejecutar();
+    }
+
+    private static class StatusPill extends JPanel {
+        private final ColorDot dot = new ColorDot(Theme.TEXT_MUTED, 8);
+        private final JLabel label = new JLabel();
+        private Color fillBackground = Theme.SURFACE_ALT;
+
+        StatusPill(String initial) {
+            super(new FlowLayout(FlowLayout.LEFT, 8, 6));
+            setOpaque(false);
+            label.setFont(Theme.SMALL_BOLD);
+            label.setForeground(Theme.TEXT_MUTED);
+            label.setText(initial);
+            add(dot);
+            add(label);
+            setBorder(BorderFactory.createEmptyBorder(4, 12, 4, 14));
+        }
+
+        void set(String text, Color fg, Color bg) {
+            label.setText(text);
+            label.setForeground(fg);
+            dot.setColor(fg);
+            this.fillBackground = bg;
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(fillBackground);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), getHeight(), getHeight());
+            g2.dispose();
+        }
+    }
+
+    private static class ColorDot extends JComponent {
+        private Color color;
+        private final int size;
+
+        ColorDot(Color color, int size) {
+            this.color = color;
+            this.size = size;
+            setPreferredSize(new Dimension(size + 2, size + 2));
+        }
+
+        void setColor(Color c) {
+            this.color = c;
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(color);
+            int x = (getWidth() - size) / 2;
+            int y = (getHeight() - size) / 2;
+            g2.fill(new Ellipse2D.Float(x, y, size, size));
+            g2.dispose();
+        }
+    }
+
+    private static class LogoDot extends JComponent {
+        private final int size;
+
+        LogoDot(int size) {
+            this.size = size;
+            setPreferredSize(new Dimension(size + 2, size + 2));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(Theme.PRIMARY);
+            int x = (getWidth() - size) / 2;
+            int y = (getHeight() - size) / 2;
+            g2.fillRoundRect(x, y, size, size, size, size);
+            g2.setColor(Color.WHITE);
+            g2.fillRoundRect(x + 3, y + 3, size - 6, size - 6, size - 6, size - 6);
+            g2.dispose();
+        }
+    }
+
+    private static class SlimScrollBarUI extends BasicScrollBarUI {
+        @Override
+        protected void configureScrollBarColors() {
+            this.thumbColor = Theme.BORDER_STRONG;
+            this.trackColor = Theme.SURFACE_ALT;
+        }
+
+        @Override
+        protected javax.swing.JButton createDecreaseButton(int orientation) {
+            return invisibleButton();
+        }
+
+        @Override
+        protected javax.swing.JButton createIncreaseButton(int orientation) {
+            return invisibleButton();
+        }
+
+        private javax.swing.JButton invisibleButton() {
+            javax.swing.JButton b = new javax.swing.JButton();
+            b.setPreferredSize(new Dimension(0, 0));
+            b.setMinimumSize(new Dimension(0, 0));
+            b.setMaximumSize(new Dimension(0, 0));
+            return b;
+        }
+
+        @Override
+        protected void paintThumb(Graphics g, javax.swing.JComponent c, java.awt.Rectangle thumbBounds) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(thumbColor);
+            g2.fillRoundRect(thumbBounds.x + 2, thumbBounds.y + 2, thumbBounds.width - 4, thumbBounds.height - 4, 6, 6);
+            g2.dispose();
+        }
+
+        @Override
+        protected void paintTrack(Graphics g, javax.swing.JComponent c, java.awt.Rectangle trackBounds) {
+            g.setColor(trackColor);
+            g.fillRect(trackBounds.x, trackBounds.y, trackBounds.width, trackBounds.height);
+        }
     }
 }

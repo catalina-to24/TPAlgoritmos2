@@ -15,9 +15,9 @@ class ArbolDepositosTest {
     void auditaEnPostOrdenYMarcaSoloPendientes() {
         ArbolDepositos arbol = new ArbolDepositos();
         LocalDateTime ahora = LocalDateTime.of(2026, 3, 27, 10, 0);
-        Deposito raiz = new Deposito(50, "Central", false, ahora.minusDays(70), List.of());
-        Deposito izq = new Deposito(20, "Cordoba", false, ahora.minusDays(10), List.of());
-        Deposito der = new Deposito(80, "Mendoza", false, null, List.of());
+        Deposito raiz = new Deposito(50, "Central", false, ahora.minusDays(70));
+        Deposito izq = new Deposito(20, "Cordoba", false, ahora.minusDays(10));
+        Deposito der = new Deposito(80, "Mendoza", false, null);
         arbol.insertar(raiz);
         arbol.insertar(izq);
         arbol.insertar(der);
@@ -33,16 +33,16 @@ class ArbolDepositosTest {
     @Test
     void devuelveDepositosPorNivel() {
         ArbolDepositos arbol = new ArbolDepositos();
-        arbol.insertar(new Deposito(50, "Central", false, null, List.of()));
-        arbol.insertar(new Deposito(20, "Cordoba", false, null, List.of()));
-        arbol.insertar(new Deposito(80, "Mendoza", false, null, List.of()));
-        arbol.insertar(new Deposito(10, "Salta", false, null, List.of()));
+        arbol.insertar(new Deposito(50, "Central", false, null));
+        arbol.insertar(new Deposito(20, "Cordoba", false, null));
+        arbol.insertar(new Deposito(80, "Mendoza", false, null));
+        arbol.insertar(new Deposito(10, "Salta", false, null));
 
         List<Deposito> nivelUno = arbol.obtenerNivel(1);
 
         assertEquals(List.of(
-                new Deposito(20, "Cordoba", false, null, List.of()),
-                new Deposito(80, "Mendoza", false, null, List.of())
+                new Deposito(20, "Cordoba", false, null),
+                new Deposito(80, "Mendoza", false, null)
         ), nivelUno);
     }
 }

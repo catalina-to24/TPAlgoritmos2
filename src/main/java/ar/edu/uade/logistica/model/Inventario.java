@@ -1,6 +1,5 @@
 package ar.edu.uade.logistica.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Inventario {
@@ -9,20 +8,20 @@ public class Inventario {
     private final List<Ruta> rutas;
 
     public Inventario(List<Paquete<String>> paquetes, List<Deposito> depositos, List<Ruta> rutas) {
-        this.paquetes = new ArrayList<>(paquetes == null ? List.of() : paquetes);
-        this.depositos = new ArrayList<>(depositos == null ? List.of() : depositos);
-        this.rutas = new ArrayList<>(rutas == null ? List.of() : rutas);
+        this.paquetes = paquetes == null ? List.of() : List.copyOf(paquetes);
+        this.depositos = depositos == null ? List.of() : List.copyOf(depositos);
+        this.rutas = rutas == null ? List.of() : List.copyOf(rutas);
     }
 
     public List<Paquete<String>> getPaquetes() {
-        return new ArrayList<>(paquetes);
+        return paquetes;
     }
 
     public List<Deposito> getDepositos() {
-        return new ArrayList<>(depositos);
+        return depositos;
     }
 
     public List<Ruta> getRutas() {
-        return new ArrayList<>(rutas);
+        return rutas;
     }
 }

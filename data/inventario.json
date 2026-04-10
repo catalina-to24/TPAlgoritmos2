@@ -27,43 +27,37 @@
       "id": 50,
       "nombre": "Hub Central Buenos Aires",
       "visitado": false,
-      "fechaUltimaAuditoria": "2026-01-10T09:00:00",
-      "conexiones": [20, 80]
+      "fechaUltimaAuditoria": "2026-01-10T09:00:00"
     },
     {
       "id": 20,
       "nombre": "Deposito Cordoba",
       "visitado": false,
-      "fechaUltimaAuditoria": "2026-03-20T11:00:00",
-      "conexiones": [50, 10, 30]
+      "fechaUltimaAuditoria": "2026-03-20T11:00:00"
     },
     {
       "id": 80,
       "nombre": "Deposito Mendoza",
       "visitado": false,
-      "fechaUltimaAuditoria": "2025-12-01T08:30:00",
-      "conexiones": [50, 90]
+      "fechaUltimaAuditoria": "2025-12-01T08:30:00"
     },
     {
       "id": 10,
       "nombre": "Deposito Salta",
       "visitado": false,
-      "fechaUltimaAuditoria": null,
-      "conexiones": [20]
+      "fechaUltimaAuditoria": null
     },
     {
       "id": 30,
       "nombre": "Deposito Santa Fe",
       "visitado": false,
-      "fechaUltimaAuditoria": "2026-03-01T16:00:00",
-      "conexiones": [20]
+      "fechaUltimaAuditoria": "2026-03-01T16:00:00"
     },
     {
       "id": 90,
       "nombre": "Deposito Neuquen",
       "visitado": false,
-      "fechaUltimaAuditoria": "2026-02-01T14:00:00",
-      "conexiones": [80]
+      "fechaUltimaAuditoria": "2026-02-01T14:00:00"
     }
   ],
   "rutas": [

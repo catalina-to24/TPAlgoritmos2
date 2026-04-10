@@ -1,8 +1,6 @@
 package ar.edu.uade.logistica.model;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 public class Deposito {
@@ -10,9 +8,8 @@ public class Deposito {
     private final String nombre;
     private boolean visitado;
     private LocalDateTime fechaUltimaAuditoria;
-    private final List<Integer> conexiones;
 
-    public Deposito(int id, String nombre, boolean visitado, LocalDateTime fechaUltimaAuditoria, List<Integer> conexiones) {
+    public Deposito(int id, String nombre, boolean visitado, LocalDateTime fechaUltimaAuditoria) {
         if (nombre == null || nombre.isBlank()) {
             throw new IllegalArgumentException("El nombre del deposito es obligatorio.");
         }
@@ -20,7 +17,6 @@ public class Deposito {
         this.nombre = nombre;
         this.visitado = visitado;
         this.fechaUltimaAuditoria = fechaUltimaAuditoria;
-        this.conexiones = new ArrayList<>(conexiones == null ? List.of() : conexiones);
     }
 
     public int getId() {
@@ -47,10 +43,6 @@ public class Deposito {
         this.fechaUltimaAuditoria = fechaUltimaAuditoria;
     }
 
-    public List<Integer> getConexiones() {
-        return new ArrayList<>(conexiones);
-    }
-
     @Override
     public String toString() {
         return "Deposito{" +
@@ -58,7 +50,6 @@ public class Deposito {
                 ", nombre='" + nombre + '\'' +
                 ", visitado=" + visitado +
                 ", fechaUltimaAuditoria=" + fechaUltimaAuditoria +
-                ", conexiones=" + conexiones +
                 '}';
     }
 

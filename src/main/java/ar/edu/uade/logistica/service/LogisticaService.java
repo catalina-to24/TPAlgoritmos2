@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class LogisticaService {
     private Camion camion = new Camion();
@@ -79,10 +78,8 @@ public class LogisticaService {
         return arbolDepositos.auditarDepositosPendientes(fechaReferencia);
     }
 
-    public List<String> depositosPorNivel(int nivel) {
-        return arbolDepositos.obtenerNivel(nivel).stream()
-                .map(deposito -> deposito.getId() + " - " + deposito.getNombre())
-                .collect(Collectors.toList());
+    public List<Deposito> depositosPorNivel(int nivel) {
+        return arbolDepositos.obtenerNivel(nivel);
     }
 
     public Deposito buscarDeposito(int id) {

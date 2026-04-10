@@ -2,6 +2,11 @@ package ar.edu.uade.logistica.model;
 
 import java.util.Objects;
 
+/**
+ * TDA generico de paquete logistico. El parametro de tipo {@code T} permite transportar
+ * distintos tipos de contenido (Electronica, Alimentos, Fragiles, ...). Todas las
+ * operaciones son O(1) en tiempo y espacio.
+ */
 public class Paquete<T> {
     private final String id;
     private final double peso;

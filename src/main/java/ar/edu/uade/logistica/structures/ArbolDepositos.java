@@ -9,13 +9,26 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
+/**
+ * Arbol Binario de Busqueda (ABB) implementado desde cero, ordenado por id de deposito.
+ * No aplica balanceo: asume una distribucion razonable de ids. En el peor caso (ids ordenados)
+ * las operaciones degradan a O(n), pero se mantienen las cotas promedio de un ABB.
+ */
 public class ArbolDepositos {
     private Nodo raiz;
 
+    /**
+     * Inserta un deposito manteniendo la propiedad de orden del ABB.
+     * Complejidad: O(log n) promedio, O(n) peor caso; O(h) espacio de pila.
+     */
     public void insertar(Deposito deposito) {
         raiz = insertarRecursivo(raiz, deposito);
     }
 
+    /**
+     * Busca un deposito por id.
+     * Complejidad: O(log n) promedio, O(n) peor caso; O(1) espacio.
+     */
     public Deposito buscar(int id) {
         Nodo actual = raiz;
         while (actual != null) {
@@ -27,33 +40,49 @@ public class ArbolDepositos {
         throw new NoSuchElementException("No existe un deposito con ID " + id);
     }
 
+    /**
+     * Recorre el arbol en post-orden y marca como "visitados" los depositos cuya ultima
+     * auditoria sea nula o anterior a {@code fechaCorte - 30 dias}. Devuelve los ids
+     * visitados en el orden del recorrido.
+     * Complejidad: O(n) tiempo, O(h) espacio por pila de recursion.
+     */
     public List<Integer> auditarDepositosPendientes(LocalDateTime fechaCorte) {
         List<Integer> auditados = new ArrayList<>();
         auditarPostOrden(raiz, fechaCorte.minusDays(30), auditados);
         return auditados;
     }
 
+    /**
+     * Devuelve los depositos ubicados en el nivel indicado (raiz = nivel 0) mediante BFS
+     * por niveles.
+     * Complejidad: O(n) tiempo en el peor caso, O(w) espacio donde w es el ancho maximo.
+     */
     public List<Deposito> obtenerNivel(int nivelObjetivo) {
         List<Deposito> resultado = new ArrayList<>();
         if (raiz == null || nivelObjetivo < 0) {
             return resultado;
         }
-        Queue<NodoNivel> cola = new ArrayDeque<>();
-        cola.offer(new NodoNivel(raiz, 0));
+        Queue<Nodo> cola = new ArrayDeque<>();
+        cola.offer(raiz);
+        int nivelActual = 0;
         while (!cola.isEmpty()) {
-            NodoNivel actual = cola.poll();
-            if (actual.nivel == nivelObjetivo) {
-                resultado.add(actual.nodo.deposito);
+            int tamanoNivel = cola.size();
+            if (nivelActual == nivelObjetivo) {
+                for (int i = 0; i < tamanoNivel; i++) {
+                    resultado.add(cola.poll().deposito);
+                }
+                return resultado;
             }
-            if (actual.nivel > nivelObjetivo) {
-                break;
+            for (int i = 0; i < tamanoNivel; i++) {
+                Nodo actual = cola.poll();
+                if (actual.izquierdo != null) {
+                    cola.offer(actual.izquierdo);
+                }
+                if (actual.derecho != null) {
+                    cola.offer(actual.derecho);
+                }
             }
-            if (actual.nodo.izquierdo != null) {
-                cola.offer(new NodoNivel(actual.nodo.izquierdo, actual.nivel + 1));
-            }
-            if (actual.nodo.derecho != null) {
-                cola.offer(new NodoNivel(actual.nodo.derecho, actual.nivel + 1));
-            }
+            nivelActual++;
         }
         return resultado;
     }
@@ -94,8 +123,5 @@ public class ArbolDepositos {
         private Nodo(Deposito deposito) {
             this.deposito = deposito;
         }
-    }
-
-    private record NodoNivel(Nodo nodo, int nivel) {
     }
 }

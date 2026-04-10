@@ -27,22 +27,19 @@
       "id": 40,
       "nombre": "Deposito Central",
       "visitado": false,
-      "fechaUltimaAuditoria": "2026-03-01T10:00:00",
-      "conexiones": [20, 60]
+      "fechaUltimaAuditoria": "2026-03-01T10:00:00"
     },
     {
       "id": 20,
       "nombre": "Deposito Norte",
       "visitado": false,
-      "fechaUltimaAuditoria": null,
-      "conexiones": [40]
+      "fechaUltimaAuditoria": null
     },
     {
       "id": 60,
       "nombre": "Deposito Sur",
       "visitado": false,
-      "fechaUltimaAuditoria": "2026-01-15T09:30:00",
-      "conexiones": [40]
+      "fechaUltimaAuditoria": "2026-01-15T09:30:00"
     }
   ],
   "rutas": [

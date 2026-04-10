@@ -10,13 +10,26 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.PriorityQueue;
 
+/**
+ * Grafo NO dirigido de depositos implementado como lista de adyacencia. Cada ruta se
+ * registra en ambas direcciones. La distancia minima entre dos depositos se calcula con
+ * Dijkstra sobre los kilometros declarados de cada arista.
+ */
 public class GrafoDepositos {
     private final Map<Integer, List<Arista>> adyacencias = new HashMap<>();
 
+    /**
+     * Agrega un deposito aislado al grafo si no existe.
+     * Complejidad: O(1) amortizado tiempo, O(1) espacio.
+     */
     public void agregarDeposito(int id) {
         adyacencias.computeIfAbsent(id, ignored -> new ArrayList<>());
     }
 
+    /**
+     * Conecta dos depositos con una ruta bidireccional.
+     * Complejidad: O(1) amortizado tiempo, O(1) espacio.
+     */
     public void conectar(Ruta ruta) {
         agregarDeposito(ruta.origen());
         agregarDeposito(ruta.destino());
@@ -24,6 +37,10 @@ public class GrafoDepositos {
         adyacencias.get(ruta.destino()).add(new Arista(ruta.origen(), ruta.distanciaKm()));
     }
 
+    /**
+     * Calcula la distancia minima en km entre dos depositos usando Dijkstra.
+     * Complejidad: O((V + E) log V) tiempo, O(V) espacio.
+     */
     public int distanciaMinima(int origen, int destino) {
         if (!adyacencias.containsKey(origen) || !adyacencias.containsKey(destino)) {
             throw new NoSuchElementException("Origen o destino inexistente en el grafo.");
@@ -42,7 +59,7 @@ public class GrafoDepositos {
             if (actual.distancia > distancias.getOrDefault(actual.id, Integer.MAX_VALUE)) {
                 continue;
             }
-            for (Arista arista : adyacencias.getOrDefault(actual.id, List.of())) {
+            for (Arista arista : adyacencias.get(actual.id)) {
                 int nuevaDistancia = actual.distancia + arista.distancia;
                 if (nuevaDistancia < distancias.getOrDefault(arista.destino, Integer.MAX_VALUE)) {
                     distancias.put(arista.destino, nuevaDistancia);

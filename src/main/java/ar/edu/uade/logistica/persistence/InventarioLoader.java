@@ -56,8 +56,7 @@ public class InventarioLoader {
                     getInt(depositoMap, "id"),
                     getString(depositoMap, "nombre"),
                     getBoolean(depositoMap, "visitado"),
-                    getNullableDateTime(depositoMap.get("fechaUltimaAuditoria")),
-                    getIntList(depositoMap.get("conexiones"))
+                    getNullableDateTime(depositoMap.get("fechaUltimaAuditoria"))
             ));
         }
         return depositos;
@@ -116,23 +115,6 @@ public class InventarioLoader {
             throw new IllegalArgumentException("El campo '" + key + "' debe ser numerico.");
         }
         return number.doubleValue();
-    }
-
-    private List<Integer> getIntList(Object value) {
-        List<Integer> result = new ArrayList<>();
-        if (value == null) {
-            return result;
-        }
-        if (!(value instanceof List<?> items)) {
-            throw new IllegalArgumentException("El campo conexiones debe ser una lista.");
-        }
-        for (Object item : items) {
-            if (!(item instanceof Number number)) {
-                throw new IllegalArgumentException("Cada conexion debe ser numerica.");
-            }
-            result.add(number.intValue());
-        }
-        return result;
     }
 
     private LocalDateTime getNullableDateTime(Object value) {

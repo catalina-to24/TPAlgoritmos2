@@ -8,6 +8,10 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Cola de prioridad que procesa primero los paquetes urgentes o con peso mayor a 50 kg,
+ * usando orden de llegada como desempate (FIFO dentro de cada prioridad).
+ */
 public class CentroDistribucion {
     private final AtomicLong secuencia = new AtomicLong();
     private final Queue<Entrada> cola = new PriorityQueue<>(Comparator
@@ -15,10 +19,18 @@ public class CentroDistribucion {
             .reversed()
             .thenComparingLong(Entrada::ordenLlegada));
 
+    /**
+     * Encola un paquete calculando su prioridad en el momento de ingreso.
+     * Complejidad: O(log n) tiempo, O(1) espacio.
+     */
     public void recibir(Paquete<?> paquete) {
         cola.offer(new Entrada(paquete, paquete.requierePrioridad(), secuencia.getAndIncrement()));
     }
 
+    /**
+     * Extrae el paquete de mayor prioridad.
+     * Complejidad: O(log n) tiempo, O(1) espacio.
+     */
     public Paquete<?> procesarSiguiente() {
         Entrada entrada = cola.poll();
         if (entrada == null) {
@@ -27,6 +39,7 @@ public class CentroDistribucion {
         return entrada.paquete();
     }
 
+    /** Complejidad: O(1) tiempo, O(1) espacio. */
     public int cantidadPendientes() {
         return cola.size();
     }

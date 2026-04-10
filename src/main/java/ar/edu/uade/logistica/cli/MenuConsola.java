@@ -1,5 +1,6 @@
 package ar.edu.uade.logistica.cli;
 
+import ar.edu.uade.logistica.model.Deposito;
 import ar.edu.uade.logistica.model.Paquete;
 import ar.edu.uade.logistica.service.LogisticaService;
 
@@ -70,14 +71,12 @@ public class MenuConsola {
     private void altaManualPaquete() {
         System.out.print("ID: ");
         String id = scanner.nextLine().trim();
-        System.out.print("Peso: ");
-        double peso = Double.parseDouble(scanner.nextLine().trim());
+        double peso = leerDouble("Peso: ");
         System.out.print("Destino: ");
         String destino = scanner.nextLine().trim();
         System.out.print("Contenido: ");
         String contenido = scanner.nextLine().trim();
-        System.out.print("Es urgente? (true/false): ");
-        boolean urgente = Boolean.parseBoolean(scanner.nextLine().trim());
+        boolean urgente = leerBoolean("Es urgente? (s/n): ");
 
         Paquete<String> paquete = service.crearPaqueteManual(id, peso, destino, contenido, urgente);
         System.out.println("Paquete agregado al centro de distribucion: " + paquete);
@@ -119,22 +118,57 @@ public class MenuConsola {
     }
 
     private void verDepositosPorNivel() {
-        System.out.print("Nivel a consultar: ");
-        int nivel = Integer.parseInt(scanner.nextLine().trim());
-        List<String> depositos = service.depositosPorNivel(nivel);
+        int nivel = leerEntero("Nivel a consultar: ");
+        List<Deposito> depositos = service.depositosPorNivel(nivel);
         if (depositos.isEmpty()) {
             System.out.println("No hay depositos en ese nivel.");
             return;
         }
-        depositos.forEach(System.out::println);
+        depositos.forEach(d -> System.out.println(d.getId() + " - " + d.getNombre()));
     }
 
     private void calcularDistanciaMinima() {
-        System.out.print("Deposito origen: ");
-        int origen = Integer.parseInt(scanner.nextLine().trim());
-        System.out.print("Deposito destino: ");
-        int destino = Integer.parseInt(scanner.nextLine().trim());
+        int origen = leerEntero("Deposito origen: ");
+        int destino = leerEntero("Deposito destino: ");
         int distancia = service.distanciaMinimaEntreDepositos(origen, destino);
         System.out.println("Distancia minima: " + distancia + " km");
+    }
+
+    private int leerEntero(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine().trim();
+            try {
+                return Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                System.out.println("Ingrese un numero entero valido.");
+            }
+        }
+    }
+
+    private double leerDouble(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine().trim();
+            try {
+                return Double.parseDouble(input);
+            } catch (NumberFormatException e) {
+                System.out.println("Ingrese un numero valido.");
+            }
+        }
+    }
+
+    private boolean leerBoolean(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine().trim().toLowerCase();
+            if (input.equals("s") || input.equals("si") || input.equals("true")) {
+                return true;
+            }
+            if (input.equals("n") || input.equals("no") || input.equals("false")) {
+                return false;
+            }
+            System.out.println("Responda con s/n.");
+        }
     }
 }
