@@ -26,42 +26,65 @@ La aplicacion resuelve las dos iteraciones pedidas:
 ## Estructura
 
 - `src/main/java/ar/edu/uade/logistica/Main.java`: punto de entrada
-- `src/main/java/ar/edu/uade/logistica/gui/LogisticaFrame.java`: interfaz grafica Swing
+- `src/main/java/ar/edu/uade/logistica/web/WebServer.java`: servidor HTTP y API REST (JDK `HttpServer`, sin deps)
+- `src/main/java/ar/edu/uade/logistica/web/JsonWriter.java`: serializador JSON minimalista
 - `src/main/java/ar/edu/uade/logistica/cli/MenuConsola.java`: menu por consola
 - `src/main/java/ar/edu/uade/logistica/model`: entidades del dominio
 - `src/main/java/ar/edu/uade/logistica/structures`: pila, cola con prioridad, ABB y grafo
 - `src/main/java/ar/edu/uade/logistica/persistence`: parser JSON simple y carga de inventario
 - `src/main/java/ar/edu/uade/logistica/service/LogisticaService.java`: coordinacion de casos de uso
+- `src/main/resources/web`: front-end estatico (HTML + Tailwind CDN + JS vanilla)
 - `data/inventario.json`: dataset de ejemplo
 
 ## Ejecucion
 
 Compilar:
 
-```powershell
-New-Item -ItemType Directory -Force -Path out | Out-Null
-javac -d out (Get-ChildItem -Recurse -Filter *.java src/main/java | ForEach-Object { $_.FullName })
+```bash
+mkdir -p out
+javac -d out $(find src/main/java -name "*.java")
+cp -r src/main/resources/web out/
 ```
 
-Abrir la interfaz grafica:
+Abrir la interfaz web (default):
 
-```powershell
+```bash
 java -cp out ar.edu.uade.logistica.Main
 ```
 
+Luego abrir `http://localhost:7070` en el navegador. Para usar otro puerto: `--port 8080`.
+
 Abrir el modo consola:
 
-```powershell
+```bash
 java -cp out ar.edu.uade.logistica.Main --cli
 ```
 
-## Uso de la interfaz
+## Uso de la interfaz web
 
-- Boton `Cargar inventario JSON`: carga `data/inventario.json` o cualquier archivo compatible.
-- Pestaña `Paquetes`: alta manual y procesamiento hacia el camion.
-- Pestaña `Camion`: ver carga actual, deshacer ultima carga y descargar.
-- Pestaña `Depositos`: ejecutar auditoria y consultar depositos por nivel.
-- Pestaña `Rutas`: calcular distancia minima entre dos depositos.
+- Boton `Cargar inventario`: carga `data/inventario.json` por default y popula las KPIs.
+- Tarjeta `Centro de distribucion`: alta manual de paquetes y boton para mandar el siguiente al camion.
+- Tarjeta `Camion (pila LIFO)`: ver carga actual (tope arriba), deshacer ultima carga y descargar.
+- Tarjeta `Depositos (ABB)`: ejecutar auditoria post-orden y consultar depositos por nivel.
+- Tarjeta `Rutas (grafo + Dijkstra)`: calcular distancia minima entre dos depositos.
+
+Toda la logica y los calculos viven en el backend Java (`LogisticaService` + TDAs). El front-end solo hace `fetch()` contra `/api/*` y renderiza. Sin frameworks JS ni build step: Tailwind se carga por CDN.
+
+## API REST
+
+| Metodo | Ruta                                           | Descripcion                              |
+|--------|------------------------------------------------|------------------------------------------|
+| POST   | `/api/inventario/cargar`                       | Body: `{ "path": "data/inventario.json" }` |
+| GET    | `/api/estado`                                  | KPIs (pendientes centro, camion, tope)   |
+| POST   | `/api/centro/paquetes`                         | Alta manual                               |
+| POST   | `/api/camion/cargar`                           | Procesa del centro y apila en el camion  |
+| POST   | `/api/camion/deshacer`                         | Undo O(1)                                 |
+| POST   | `/api/camion/descargar`                        | Pop del tope                              |
+| GET    | `/api/camion`                                  | Carga actual                              |
+| POST   | `/api/depositos/auditar`                       | Body opcional `{ "fechaReferencia": ISO }` |
+| GET    | `/api/depositos/nivel/{n}`                     | Depositos del nivel N                     |
+| GET    | `/api/depositos/{id}`                          | Buscar deposito                           |
+| GET    | `/api/rutas/distancia?origen=X&destino=Y`      | Dijkstra                                  |
 
 ## Formato JSON esperado
 

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Logi-UADE 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <style type="text/tailwindcss">
+    @layer components {
+      .field {
+        @apply px-3 py-2 rounded-lg border border-ink-200 bg-white text-sm text-ink-900
+               placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-primary/30
+               focus:border-primary transition;
+      }
+      .btn-primary {
+        @apply px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover active:bg-primary-pressed
+               text-white text-sm font-semibold shadow-card transition
+               disabled:opacity-50 disabled:cursor-not-allowed;
+      }
+      .btn-secondary {
+        @apply px-4 py-2 rounded-lg bg-white hover:bg-ink-100 active:bg-ink-200 text-ink-900
+               text-sm font-semibold border border-ink-200 transition
+               disabled:opacity-50 disabled:cursor-not-allowed;
+      }
+      .toast        { @apply px-4 py-3 rounded-xl shadow-pop text-sm font-medium min-w-[220px] max-w-sm; }
+      .toast-ok     { @apply bg-success text-white; }
+      .toast-err    { @apply bg-danger text-white; }
+      .toast-info   { @apply bg-ink-900 text-white; }
+      .chip-item    { @apply px-3 py-2 rounded-lg bg-ink-50 border border-ink-200 flex items-center justify-between text-sm; }
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#4F46E5', hover: '#4338CA', pressed: '#3730A3' },
+            success: '#10B981',
+            warning: '#F59E0B',
+            danger:  '#EF4444',
+            ink: {
+              900: '#0F172A',
+              700: '#334155',
+              500: '#64748B',
+              400: '#94A3B8',
+              200: '#E2E8F0',
+              100: '#F1F5F9',
+              50:  '#F8FAFC'
+            }
+          },
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+          boxShadow: {
+            card: '0 1px 2px rgba(15,23,42,.04), 0 8px 24px rgba(15,23,42,.06)',
+            pop:  '0 10px 30px rgba(15,23,42,.12)'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-ink-50 text-ink-900 font-sans antialiased">
+
+  <header class="border-b border-ink-200 bg-white">
+    <div class="max-w-7xl mx-auto px-6 py-5 flex items-center gap-4">
+      <div class="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-card">
+        <span class="text-white font-bold">L</span>
+      </div>
+      <div class="flex-1">
+        <h1 class="text-lg font-semibold leading-tight">Logi-UADE 2026</h1>
+        <p class="text-sm text-ink-500">Sistema de gestion logistica — TPO AyED II</p>
+      </div>
+      <div id="statusPill" class="hidden items-center gap-2 px-3 py-1.5 rounded-full bg-ink-100 text-sm text-ink-700">
+        <span class="h-2 w-2 rounded-full bg-ink-400"></span>
+        <span id="statusText">Sin inventario</span>
+      </div>
+      <button id="btnCargarInventario"
+              class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-sm font-semibold shadow-card transition">
+        Cargar inventario
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-6">
+
+    <!-- KPIs -->
+    <section class="col-span-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-2xl p-5 shadow-card border border-ink-200/60">
+        <p class="text-xs uppercase tracking-wide text-ink-500">Centro de distribucion</p>
+        <p class="mt-2 text-3xl font-bold" id="kpiPendientes">0</p>
+        <p class="text-sm text-ink-500">paquetes pendientes</p>
+      </div>
+      <div class="bg-white rounded-2xl p-5 shadow-card border border-ink-200/60">
+        <p class="text-xs uppercase tracking-wide text-ink-500">Camion</p>
+        <p class="mt-2 text-3xl font-bold" id="kpiCamion">0</p>
+        <p class="text-sm text-ink-500">paquetes cargados</p>
+      </div>
+      <div class="bg-white rounded-2xl p-5 shadow-card border border-ink-200/60">
+        <p class="text-xs uppercase tracking-wide text-ink-500">Tope del camion</p>
+        <p class="mt-2 text-lg font-semibold truncate" id="kpiTope">—</p>
+        <p class="text-sm text-ink-500">ultimo cargado</p>
+      </div>
+      <div class="bg-white rounded-2xl p-5 shadow-card border border-ink-200/60">
+        <p class="text-xs uppercase tracking-wide text-ink-500">Endpoint</p>
+        <p class="mt-2 text-sm font-mono text-ink-700 truncate">localhost:7070</p>
+        <p class="text-sm text-success">● online</p>
+      </div>
+    </section>
+
+    <!-- Centro -->
+    <section class="col-span-12 lg:col-span-6 bg-white rounded-2xl p-6 shadow-card border border-ink-200/60">
+      <h2 class="text-base font-semibold">Centro de distribucion</h2>
+      <p class="text-sm text-ink-500 mt-1">Alta manual y procesamiento prioritario (urgente o &gt; 50 kg).</p>
+
+      <form id="formPaquete" class="mt-5 grid grid-cols-2 gap-3">
+        <input name="id" placeholder="ID (PKG-042)" class="field col-span-2 md:col-span-1" required>
+        <input name="peso" placeholder="Peso kg" type="number" step="0.1" min="0.1" class="field col-span-2 md:col-span-1" required>
+        <input name="destino" placeholder="Destino" class="field col-span-2 md:col-span-1" required>
+        <input name="contenido" placeholder="Contenido" class="field col-span-2 md:col-span-1">
+        <label class="col-span-2 flex items-center gap-2 text-sm text-ink-700">
+          <input type="checkbox" name="urgente" class="h-4 w-4 accent-primary"> Marcar como urgente
+        </label>
+        <button type="submit" class="col-span-2 btn-primary">Dar de alta</button>
+      </form>
+
+      <div class="mt-5 flex gap-2">
+        <button id="btnProcesar" class="btn-secondary flex-1">Procesar siguiente → camion</button>
+      </div>
+    </section>
+
+    <!-- Camion -->
+    <section class="col-span-12 lg:col-span-6 bg-white rounded-2xl p-6 shadow-card border border-ink-200/60">
+      <h2 class="text-base font-semibold">Camion (pila LIFO)</h2>
+      <p class="text-sm text-ink-500 mt-1">Ultimo cargado arriba. Undo en O(1).</p>
+
+      <div class="mt-5 flex gap-2">
+        <button id="btnDeshacer" class="btn-secondary flex-1">Deshacer ultima</button>
+        <button id="btnDescargar" class="btn-secondary flex-1">Descargar tope</button>
+      </div>
+
+      <ul id="listaCamion" class="mt-5 space-y-2 max-h-64 overflow-y-auto pr-1"></ul>
+    </section>
+
+    <!-- Depositos -->
+    <section class="col-span-12 lg:col-span-6 bg-white rounded-2xl p-6 shadow-card border border-ink-200/60">
+      <h2 class="text-base font-semibold">Depositos (ABB)</h2>
+      <p class="text-sm text-ink-500 mt-1">Auditoria post-orden y consulta por nivel (BFS).</p>
+
+      <div class="mt-5 flex gap-2 items-end">
+        <div class="flex-1">
+          <label class="text-xs text-ink-500">Fecha referencia (opcional)</label>
+          <input id="fechaAuditoria" type="datetime-local" class="field w-full">
+        </div>
+        <button id="btnAuditar" class="btn-primary">Auditar</button>
+      </div>
+      <div id="resultadoAuditoria" class="mt-3 text-sm text-ink-700"></div>
+
+      <div class="mt-5 flex gap-2 items-end">
+        <div class="flex-1">
+          <label class="text-xs text-ink-500">Nivel del arbol</label>
+          <input id="nivel" type="number" min="0" value="0" class="field w-full">
+        </div>
+        <button id="btnNivel" class="btn-secondary">Consultar nivel</button>
+      </div>
+      <ul id="listaNivel" class="mt-3 space-y-1 text-sm"></ul>
+    </section>
+
+    <!-- Rutas -->
+    <section class="col-span-12 lg:col-span-6 bg-white rounded-2xl p-6 shadow-card border border-ink-200/60">
+      <h2 class="text-base font-semibold">Rutas (grafo + Dijkstra)</h2>
+      <p class="text-sm text-ink-500 mt-1">Distancia minima entre depositos.</p>
+
+      <div class="mt-5 grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-ink-500">Origen</label>
+          <input id="origen" type="number" class="field w-full" placeholder="10">
+        </div>
+        <div>
+          <label class="text-xs text-ink-500">Destino</label>
+          <input id="destino" type="number" class="field w-full" placeholder="90">
+        </div>
+      </div>
+      <button id="btnDistancia" class="mt-3 btn-primary w-full">Calcular distancia</button>
+      <div id="resultadoDistancia" class="mt-3 text-sm text-ink-700"></div>
+    </section>
+
+    <!-- Log -->
+    <section class="col-span-12 bg-white rounded-2xl p-6 shadow-card border border-ink-200/60">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-semibold">Actividad</h2>
+        <button id="btnLimpiarLog" class="text-xs text-ink-500 hover:text-ink-700">Limpiar</button>
+      </div>
+      <ul id="log" class="mt-3 space-y-1 text-sm font-mono max-h-72 overflow-y-auto"></ul>
+    </section>
+
+  </main>
+
+  <div id="toastHost" class="fixed bottom-6 right-6 flex flex-col gap-2 z-50"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

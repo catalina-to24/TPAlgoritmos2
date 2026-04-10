@@ -10,3 +10,5 @@ tmp/
 *.iml
 
 .DS_Store
+.playwright-mcp/
+.claude/
