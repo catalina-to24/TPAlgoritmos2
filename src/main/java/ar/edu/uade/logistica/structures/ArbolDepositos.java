@@ -87,6 +87,25 @@ public class ArbolDepositos {
         return resultado;
     }
 
+    /**
+     * Devuelve todos los depositos en orden ascendente por id (recorrido in-order).
+     * Complejidad: O(n) tiempo, O(h) espacio por pila de recursion.
+     */
+    public List<Deposito> listarTodos() {
+        List<Deposito> resultado = new ArrayList<>();
+        enOrden(raiz, resultado);
+        return resultado;
+    }
+
+    private void enOrden(Nodo nodo, List<Deposito> resultado) {
+        if (nodo == null) {
+            return;
+        }
+        enOrden(nodo.izquierdo, resultado);
+        resultado.add(nodo.deposito);
+        enOrden(nodo.derecho, resultado);
+    }
+
     private Nodo insertarRecursivo(Nodo actual, Deposito deposito) {
         if (actual == null) {
             return new Nodo(deposito);

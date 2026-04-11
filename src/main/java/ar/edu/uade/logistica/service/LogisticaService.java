@@ -62,8 +62,24 @@ public class LogisticaService {
         return camion.verCargaActual();
     }
 
+    public List<Paquete<?>> verPendientesCentro() {
+        return centroDistribucion.verPendientes();
+    }
+
+    public List<Deposito> listarDepositos() {
+        return arbolDepositos.listarTodos();
+    }
+
+    public List<Ruta> listarRutas() {
+        return grafoDepositos.listarRutas();
+    }
+
     public int cantidadPaquetesEnCamion() {
         return camion.cantidadPaquetes();
+    }
+
+    public double pesoTotalCamion() {
+        return camion.pesoTotal();
     }
 
     public int cantidadPendientesCentro() {

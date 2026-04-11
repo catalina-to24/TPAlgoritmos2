@@ -71,6 +71,24 @@ public class GrafoDepositos {
         throw new NoSuchElementException("No existe ruta entre los depositos indicados.");
     }
 
+    /**
+     * Devuelve todas las rutas registradas sin duplicar aristas (por tratarse de un grafo
+     * no dirigido).
+     * Complejidad: O(V + E) tiempo, O(E) espacio.
+     */
+    public List<Ruta> listarRutas() {
+        List<Ruta> resultado = new ArrayList<>();
+        for (Map.Entry<Integer, List<Arista>> entry : adyacencias.entrySet()) {
+            int origen = entry.getKey();
+            for (Arista arista : entry.getValue()) {
+                if (origen < arista.destino) {
+                    resultado.add(new Ruta(origen, arista.destino, arista.distancia));
+                }
+            }
+        }
+        return resultado;
+    }
+
     private record Arista(int destino, int distancia) {
     }
 

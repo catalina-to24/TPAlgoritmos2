@@ -54,6 +54,18 @@ public class Camion {
     }
 
     /**
+     * Suma el peso de todos los paquetes cargados.
+     * Complejidad: O(n) tiempo, O(1) espacio.
+     */
+    public double pesoTotal() {
+        double total = 0;
+        for (Paquete<?> p : carga) {
+            total += p.getPeso();
+        }
+        return total;
+    }
+
+    /**
      * Devuelve una copia de la carga actual, con el tope como primer elemento.
      * Complejidad: O(n) tiempo, O(n) espacio.
      */

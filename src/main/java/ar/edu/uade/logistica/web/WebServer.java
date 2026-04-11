@@ -41,15 +41,16 @@ public class WebServer {
 
         server.createContext("/api/inventario/cargar", json(this::cargarInventario));
         server.createContext("/api/estado", json(this::estado));
-        server.createContext("/api/centro/paquetes", json(this::altaPaquete));
+        server.createContext("/api/centro/paquetes", json(this::centroPaquetes));
         server.createContext("/api/camion/cargar", json(this::cargarCamion));
         server.createContext("/api/camion/deshacer", json(this::deshacerCamion));
         server.createContext("/api/camion/descargar", json(this::descargarCamion));
         server.createContext("/api/camion", json(this::verCamion));
         server.createContext("/api/depositos/auditar", json(this::auditar));
         server.createContext("/api/depositos/nivel/", json(this::depositosPorNivel));
-        server.createContext("/api/depositos/", json(this::buscarDeposito));
+        server.createContext("/api/depositos", json(this::depositos));
         server.createContext("/api/rutas/distancia", json(this::distancia));
+        server.createContext("/api/rutas", json(this::listarRutas));
 
         server.createContext("/", new StaticHandler());
 
@@ -80,16 +81,35 @@ public class WebServer {
         requireMethod(ex, "GET");
         synchronized (service) {
             List<Paquete<?>> carga = service.verCargaCamion();
+            int pendientes = service.cantidadPendientesCentro();
+            int cantidadCamion = service.cantidadPaquetesEnCamion();
+            int totalDepositos = service.listarDepositos().size();
+            int totalRutas = service.listarRutas().size();
             Map<String, Object> m = new HashMap<>();
-            m.put("pendientesCentro", service.cantidadPendientesCentro());
-            m.put("cantidadCamion", service.cantidadPaquetesEnCamion());
+            m.put("pendientesCentro", pendientes);
+            m.put("cantidadCamion", cantidadCamion);
+            m.put("pesoTotalCamion", service.pesoTotalCamion());
             m.put("topeCamion", carga.isEmpty() ? null : carga.get(0));
+            m.put("totalDepositos", totalDepositos);
+            m.put("totalRutas", totalRutas);
+            m.put("inventarioCargado", pendientes + cantidadCamion + totalDepositos > 0);
             return JsonWriter.toJson(m);
         }
     }
 
-    private String altaPaquete(HttpExchange ex) throws IOException {
-        requireMethod(ex, "POST");
+    private String centroPaquetes(HttpExchange ex) throws IOException {
+        String method = ex.getRequestMethod();
+        if ("GET".equalsIgnoreCase(method)) {
+            synchronized (service) {
+                return JsonWriter.toJson(Map.of(
+                        "cantidad", service.cantidadPendientesCentro(),
+                        "paquetes", service.verPendientesCentro()
+                ));
+            }
+        }
+        if (!"POST".equalsIgnoreCase(method)) {
+            throw new IllegalArgumentException("Metodo no permitido: " + method);
+        }
         Map<String, Object> body = readJsonObject(ex);
         String id = (String) body.get("id");
         double peso = toDouble(body.get("peso"));
@@ -130,6 +150,7 @@ public class WebServer {
         synchronized (service) {
             return JsonWriter.toJson(Map.of(
                     "cantidad", service.cantidadPaquetesEnCamion(),
+                    "pesoTotal", service.pesoTotalCamion(),
                     "paquetes", service.verCargaCamion()
             ));
         }
@@ -163,16 +184,32 @@ public class WebServer {
         }
     }
 
-    private String buscarDeposito(HttpExchange ex) {
+    private String depositos(HttpExchange ex) {
         requireMethod(ex, "GET");
         String path = ex.getRequestURI().getPath();
-        String suffix = path.substring("/api/depositos/".length());
-        if (suffix.isEmpty() || suffix.contains("/")) {
+        String suffix = path.length() > "/api/depositos".length()
+                ? path.substring("/api/depositos".length())
+                : "";
+        if (suffix.isEmpty() || suffix.equals("/")) {
+            synchronized (service) {
+                var lista = service.listarDepositos();
+                return JsonWriter.toJson(Map.of("cantidad", lista.size(), "depositos", lista));
+            }
+        }
+        if (!suffix.startsWith("/") || suffix.substring(1).contains("/")) {
             throw new IllegalArgumentException("Ruta invalida.");
         }
-        int id = Integer.parseInt(suffix);
+        int id = Integer.parseInt(suffix.substring(1));
         synchronized (service) {
             return JsonWriter.toJson(service.buscarDeposito(id));
+        }
+    }
+
+    private String listarRutas(HttpExchange ex) {
+        requireMethod(ex, "GET");
+        synchronized (service) {
+            var rutas = service.listarRutas();
+            return JsonWriter.toJson(Map.of("cantidad", rutas.size(), "rutas", rutas));
         }
     }
 
@@ -277,6 +314,7 @@ public class WebServer {
                 }
                 byte[] bytes = is.readAllBytes();
                 ex.getResponseHeaders().set("Content-Type", contentType(path));
+                ex.getResponseHeaders().set("Cache-Control", "no-store, must-revalidate");
                 ex.sendResponseHeaders(200, bytes.length);
                 ex.getResponseBody().write(bytes);
                 ex.getResponseBody().close();

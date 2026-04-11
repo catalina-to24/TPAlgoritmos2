@@ -3,203 +3,612 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Logi-UADE 2026</title>
+  <title>Logi-UADE — Gestión logística</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css">
-  <style type="text/tailwindcss">
-    @layer components {
-      .field {
-        @apply px-3 py-2 rounded-lg border border-ink-200 bg-white text-sm text-ink-900
-               placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-primary/30
-               focus:border-primary transition;
-      }
-      .btn-primary {
-        @apply px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover active:bg-primary-pressed
-               text-white text-sm font-semibold shadow-card transition
-               disabled:opacity-50 disabled:cursor-not-allowed;
-      }
-      .btn-secondary {
-        @apply px-4 py-2 rounded-lg bg-white hover:bg-ink-100 active:bg-ink-200 text-ink-900
-               text-sm font-semibold border border-ink-200 transition
-               disabled:opacity-50 disabled:cursor-not-allowed;
-      }
-      .toast        { @apply px-4 py-3 rounded-xl shadow-pop text-sm font-medium min-w-[220px] max-w-sm; }
-      .toast-ok     { @apply bg-success text-white; }
-      .toast-err    { @apply bg-danger text-white; }
-      .toast-info   { @apply bg-ink-900 text-white; }
-      .chip-item    { @apply px-3 py-2 rounded-lg bg-ink-50 border border-ink-200 flex items-center justify-between text-sm; }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css?v=2">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234F46E5'/%3E%3Ctext x='50%25' y='56%25' text-anchor='middle' fill='white' font-size='18' font-family='Inter,sans-serif' font-weight='700'%3EL%3C/text%3E%3C/svg%3E">
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            primary: { DEFAULT: '#4F46E5', hover: '#4338CA', pressed: '#3730A3' },
-            success: '#10B981',
-            warning: '#F59E0B',
-            danger:  '#EF4444',
+            brand:   { DEFAULT: '#4F46E5', hover: '#4338CA', pressed: '#3730A3', soft: '#EEF2FF' },
+            accent:  '#8B5CF6',
+            success: { DEFAULT: '#10B981', soft: '#D1FAE5' },
+            warning: { DEFAULT: '#F59E0B', soft: '#FEF3C7' },
+            danger:  { DEFAULT: '#EF4444', soft: '#FEE2E2' },
             ink: {
-              900: '#0F172A',
-              700: '#334155',
-              500: '#64748B',
-              400: '#94A3B8',
-              200: '#E2E8F0',
-              100: '#F1F5F9',
-              50:  '#F8FAFC'
+              900: '#0F172A', 800: '#1E293B', 700: '#334155', 600: '#475569',
+              500: '#64748B', 400: '#94A3B8', 300: '#CBD5E1', 200: '#E2E8F0',
+              100: '#F1F5F9', 50:  '#F8FAFC'
             }
           },
           fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
           boxShadow: {
-            card: '0 1px 2px rgba(15,23,42,.04), 0 8px 24px rgba(15,23,42,.06)',
-            pop:  '0 10px 30px rgba(15,23,42,.12)'
+            card: '0 1px 2px rgba(15,23,42,.04), 0 4px 16px rgba(15,23,42,.04)',
+            hover:'0 4px 20px rgba(79,70,229,.15)',
+            pop:  '0 10px 30px rgba(15,23,42,.15)'
           }
         }
       }
     }
   </script>
+  <style type="text/tailwindcss">
+    @layer components {
+      .nav-item {
+        @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ink-600
+               hover:bg-ink-100 hover:text-ink-900 transition cursor-pointer;
+      }
+      .nav-item.active {
+        @apply bg-brand-soft text-brand font-semibold;
+      }
+      .nav-item svg { @apply h-5 w-5 flex-shrink-0; }
+
+      .card {
+        @apply bg-white rounded-2xl p-6 shadow-card border border-ink-200/60;
+      }
+      .card-title { @apply text-base font-semibold text-ink-900; }
+      .card-subtitle { @apply text-sm text-ink-500 mt-0.5; }
+
+      .field {
+        @apply px-3.5 py-2.5 rounded-lg border border-ink-200 bg-white text-sm text-ink-900
+               placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand/25
+               focus:border-brand transition w-full;
+      }
+      .label { @apply text-xs font-medium text-ink-600 mb-1.5 block; }
+
+      .btn {
+        @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm
+               font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed;
+      }
+      .btn svg { @apply h-4 w-4; }
+      .btn-primary   { @apply btn bg-brand hover:bg-brand-hover active:bg-brand-pressed text-white shadow-card hover:shadow-hover; }
+      .btn-secondary { @apply btn bg-white hover:bg-ink-50 active:bg-ink-100 text-ink-800 border border-ink-200; }
+      .btn-ghost     { @apply btn bg-transparent hover:bg-ink-100 text-ink-700; }
+      .btn-danger    { @apply btn bg-danger hover:bg-red-600 text-white; }
+
+      .stat {
+        @apply bg-white rounded-2xl p-5 shadow-card border border-ink-200/60 flex items-start gap-4;
+      }
+      .stat-icon {
+        @apply h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0;
+      }
+      .stat-icon svg { @apply h-5 w-5; }
+      .stat-label { @apply text-xs uppercase tracking-wide text-ink-500 font-semibold; }
+      .stat-value { @apply text-2xl font-bold text-ink-900 leading-tight mt-1; }
+      .stat-hint  { @apply text-xs text-ink-500 mt-0.5; }
+
+      .badge {
+        @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold;
+      }
+      .badge-urgent    { @apply bg-danger-soft text-danger; }
+      .badge-heavy     { @apply bg-warning-soft text-warning; }
+      .badge-normal    { @apply bg-ink-100 text-ink-600; }
+      .badge-top       { @apply bg-brand-soft text-brand; }
+      .badge-success   { @apply bg-success-soft text-success; }
+      .badge-warning   { @apply bg-warning-soft text-warning; }
+
+      .empty {
+        @apply flex flex-col items-center justify-center text-center py-12 px-6 text-ink-500;
+      }
+      .empty svg { @apply h-12 w-12 text-ink-300 mb-3; }
+      .empty h3 { @apply text-base font-semibold text-ink-700; }
+      .empty p  { @apply text-sm mt-1 max-w-sm; }
+
+      .list-row {
+        @apply flex items-center justify-between gap-3 px-4 py-3 rounded-lg border border-ink-200
+               hover:border-ink-300 transition bg-white;
+      }
+
+      .toast     { @apply px-4 py-3 rounded-xl shadow-pop text-sm font-medium min-w-[240px] max-w-sm flex items-center gap-2; }
+      .toast-ok  { @apply bg-success text-white; }
+      .toast-err { @apply bg-danger text-white; }
+      .toast-info{ @apply bg-ink-900 text-white; }
+    }
+  </style>
 </head>
 <body class="min-h-screen bg-ink-50 text-ink-900 font-sans antialiased">
 
-  <header class="border-b border-ink-200 bg-white">
-    <div class="max-w-7xl mx-auto px-6 py-5 flex items-center gap-4">
-      <div class="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-card">
-        <span class="text-white font-bold">L</span>
+  <!-- Layout: sidebar + main -->
+  <div class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside class="hidden lg:flex w-64 bg-white border-r border-ink-200 flex-col flex-shrink-0">
+      <div class="px-6 py-5 border-b border-ink-200 flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-brand flex items-center justify-center shadow-card">
+          <span class="text-white font-extrabold text-lg">L</span>
+        </div>
+        <div>
+          <p class="text-sm font-bold text-ink-900 leading-tight">Logi-UADE</p>
+          <p class="text-xs text-ink-500">Gestión logística</p>
+        </div>
       </div>
-      <div class="flex-1">
-        <h1 class="text-lg font-semibold leading-tight">Logi-UADE 2026</h1>
-        <p class="text-sm text-ink-500">Sistema de gestion logistica — TPO AyED II</p>
+
+      <nav class="flex-1 p-3 space-y-1">
+        <a href="#/inicio" class="nav-item" data-route="inicio">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>
+          Inicio
+        </a>
+        <a href="#/paquetes" class="nav-item" data-route="paquetes">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          Paquetes
+        </a>
+        <a href="#/camion" class="nav-item" data-route="camion">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h11v9H3zM14 10h4l3 3v3h-7m-4 0a2 2 0 104 0m7 0a2 2 0 104 0"/></svg>
+          Camión
+        </a>
+        <a href="#/depositos" class="nav-item" data-route="depositos">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V10M5 21V10m-2 0h18M6 10l6-7 6 7M9 21v-6h6v6"/></svg>
+          Depósitos
+        </a>
+        <a href="#/rutas" class="nav-item" data-route="rutas">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5-2V6l5 2m0 12l6-2m-6 2V8m6 10l5 2V8l-5-2m0 12V6m0 0L9 8"/></svg>
+          Rutas
+        </a>
+        <div class="pt-2 mt-2 border-t border-ink-200"></div>
+        <a href="#/guia" class="nav-item" data-route="guia">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.25a9 9 0 100 12.5M12 6.25V19M12 6.25c1.5-1 3.5-1.5 6-1.5v13c-2.5 0-4.5.5-6 1.5m0-13c-1.5-1-3.5-1.5-6-1.5v13c2.5 0 4.5.5 6 1.5"/></svg>
+          Cómo usar
+        </a>
+      </nav>
+
+      <div class="p-4 border-t border-ink-200">
+        <div class="bg-ink-50 rounded-xl p-3">
+          <p class="text-xs font-semibold text-ink-700">Estado del sistema</p>
+          <div class="flex items-center gap-2 mt-1.5">
+            <span id="sidebarStatusDot" class="h-2 w-2 rounded-full bg-ink-400"></span>
+            <span id="sidebarStatusText" class="text-xs text-ink-600">Sin inventario</span>
+          </div>
+        </div>
       </div>
-      <div id="statusPill" class="hidden items-center gap-2 px-3 py-1.5 rounded-full bg-ink-100 text-sm text-ink-700">
-        <span class="h-2 w-2 rounded-full bg-ink-400"></span>
-        <span id="statusText">Sin inventario</span>
-      </div>
-      <button id="btnCargarInventario"
-              class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-sm font-semibold shadow-card transition">
-        Cargar inventario
-      </button>
+    </aside>
+
+    <!-- Main -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <!-- Top bar (mobile nav + page header) -->
+      <header class="bg-white border-b border-ink-200 px-6 py-4 flex items-center gap-4 sticky top-0 z-10">
+        <button id="btnMobileNav" class="lg:hidden btn-ghost p-2">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="flex-1 min-w-0">
+          <h1 id="pageTitle" class="text-lg font-bold text-ink-900 truncate">Inicio</h1>
+          <p id="pageSubtitle" class="text-sm text-ink-500 truncate">Panorama general de la operación</p>
+        </div>
+        <button id="btnCargarInventario" class="btn-primary">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12"/></svg>
+          <span class="hidden sm:inline">Cargar inventario</span>
+        </button>
+      </header>
+
+      <main class="flex-1 p-6 max-w-7xl w-full mx-auto">
+
+        <!-- ======================== VIEW: INICIO ======================== -->
+        <section data-view="inicio" class="view space-y-6">
+          <!-- Welcome (empty state) -->
+          <div id="welcomeCard" class="hidden bg-gradient-to-br from-brand to-accent rounded-2xl p-8 text-white shadow-card">
+            <div class="flex items-start gap-4">
+              <div class="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              </div>
+              <div class="flex-1">
+                <h2 class="text-xl font-bold">Empezá acá</h2>
+                <p class="text-white/90 mt-1 text-sm max-w-xl">
+                  Todavía no hay inventario cargado. Dale al botón
+                  <span class="font-semibold">Cargar inventario</span> para traer los paquetes,
+                  depósitos y rutas de ejemplo. Después vas a poder navegar cada sección desde el menú lateral.
+                </p>
+                <button id="btnWelcomeCargar" class="mt-4 bg-white text-brand font-semibold px-4 py-2 rounded-lg hover:bg-white/90 text-sm">
+                  Cargar datos de ejemplo
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPIs -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="stat">
+              <div class="stat-icon bg-brand-soft text-brand">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="stat-label">Paquetes pendientes</p>
+                <p class="stat-value" id="kpiPendientes">0</p>
+                <p class="stat-hint">esperando ser cargados</p>
+              </div>
+            </div>
+            <div class="stat">
+              <div class="stat-icon bg-success-soft text-success">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="stat-label">En el camión</p>
+                <p class="stat-value" id="kpiCamion">0</p>
+                <p class="stat-hint" id="kpiTope">sin carga</p>
+              </div>
+            </div>
+            <div class="stat">
+              <div class="stat-icon bg-warning-soft text-warning">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V10M5 21V10m-2 0h18M6 10l6-7 6 7"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="stat-label">Depósitos</p>
+                <p class="stat-value" id="kpiDepositos">0</p>
+                <p class="stat-hint">en la red</p>
+              </div>
+            </div>
+            <div class="stat">
+              <div class="stat-icon bg-brand-soft text-accent">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5-2V6l5 2m0 12l6-2m-6 2V8m6 10l5 2V8l-5-2m0 12V6m0 0L9 8"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="stat-label">Rutas</p>
+                <p class="stat-value" id="kpiRutas">0</p>
+                <p class="stat-hint">conexiones disponibles</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick actions + activity -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="card lg:col-span-1">
+              <h2 class="card-title">Acciones rápidas</h2>
+              <p class="card-subtitle">Las operaciones más comunes, a un click.</p>
+              <div class="mt-4 space-y-2">
+                <a href="#/paquetes" class="list-row hover:border-brand/40 hover:bg-brand-soft/30 group">
+                  <div class="flex items-center gap-3">
+                    <div class="h-9 w-9 rounded-lg bg-brand-soft text-brand flex items-center justify-center group-hover:bg-brand group-hover:text-white transition">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    </div>
+                    <div>
+                      <p class="text-sm font-semibold text-ink-900">Nuevo paquete</p>
+                      <p class="text-xs text-ink-500">Registrarlo manualmente</p>
+                    </div>
+                  </div>
+                  <svg class="h-4 w-4 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </a>
+                <button id="btnQuickProcesar" class="list-row hover:border-brand/40 hover:bg-brand-soft/30 group w-full text-left">
+                  <div class="flex items-center gap-3">
+                    <div class="h-9 w-9 rounded-lg bg-success-soft text-success flex items-center justify-center group-hover:bg-success group-hover:text-white transition">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+                    </div>
+                    <div>
+                      <p class="text-sm font-semibold text-ink-900">Enviar siguiente al camión</p>
+                      <p class="text-xs text-ink-500">Procesa el paquete más prioritario</p>
+                    </div>
+                  </div>
+                  <svg class="h-4 w-4 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </button>
+                <a href="#/depositos" class="list-row hover:border-brand/40 hover:bg-brand-soft/30 group">
+                  <div class="flex items-center gap-3">
+                    <div class="h-9 w-9 rounded-lg bg-warning-soft text-warning flex items-center justify-center group-hover:bg-warning group-hover:text-white transition">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                      <p class="text-sm font-semibold text-ink-900">Ejecutar auditoría</p>
+                      <p class="text-xs text-ink-500">Revisar depósitos pendientes</p>
+                    </div>
+                  </div>
+                  <svg class="h-4 w-4 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </a>
+              </div>
+            </div>
+
+            <div class="card lg:col-span-2">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="card-title">Actividad reciente</h2>
+                  <p class="card-subtitle">Últimas operaciones registradas en esta sesión.</p>
+                </div>
+                <button id="btnLimpiarLog" class="text-xs text-ink-500 hover:text-ink-700 font-medium">Limpiar</button>
+              </div>
+              <ul id="log" class="mt-4 space-y-1.5 text-sm max-h-80 overflow-y-auto"></ul>
+              <div id="logEmpty" class="empty">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <h3>Sin actividad todavía</h3>
+                <p>Las acciones que hagas van a aparecer acá.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================== VIEW: PAQUETES ======================== -->
+        <section data-view="paquetes" class="view space-y-6 hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Form -->
+            <div class="card lg:col-span-1">
+              <h2 class="card-title">Registrar paquete</h2>
+              <p class="card-subtitle">Altá un nuevo paquete para procesar.</p>
+              <form id="formPaquete" class="mt-5 space-y-3">
+                <div>
+                  <label class="label">ID del paquete</label>
+                  <input name="id" placeholder="PKG-042" class="field" required>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="label">Peso (kg)</label>
+                    <input name="peso" type="number" step="0.1" min="0.1" placeholder="12.5" class="field" required>
+                  </div>
+                  <div>
+                    <label class="label">Destino</label>
+                    <input name="destino" placeholder="Córdoba" class="field" required>
+                  </div>
+                </div>
+                <div>
+                  <label class="label">Contenido</label>
+                  <input name="contenido" placeholder="Electrónica" class="field">
+                </div>
+                <label class="flex items-center gap-2.5 py-2 cursor-pointer">
+                  <input type="checkbox" name="urgente" class="h-4 w-4 accent-brand rounded">
+                  <span class="text-sm text-ink-700">Marcar como urgente</span>
+                </label>
+                <button type="submit" class="btn-primary w-full">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                  Registrar paquete
+                </button>
+              </form>
+              <div class="mt-4 p-3 bg-ink-50 rounded-lg text-xs text-ink-600">
+                <strong class="text-ink-800">Prioridad:</strong> los paquetes urgentes o de más de 50&nbsp;kg pasan al frente de la cola.
+              </div>
+            </div>
+
+            <!-- Pending list -->
+            <div class="card lg:col-span-2">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="card-title">Próximos a cargar</h2>
+                  <p class="card-subtitle">Orden de salida del centro hacia el camión.</p>
+                </div>
+                <button id="btnProcesar" class="btn-primary">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+                  Enviar siguiente
+                </button>
+              </div>
+              <ul id="listaPendientes" class="mt-5 space-y-2"></ul>
+              <div id="pendientesEmpty" class="empty hidden">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <h3>No hay paquetes pendientes</h3>
+                <p>Registrá uno nuevo o cargá el inventario de ejemplo.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================== VIEW: CAMION ======================== -->
+        <section data-view="camion" class="view space-y-6 hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="card lg:col-span-2">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="card-title">Carga actual del camión</h2>
+                  <p class="card-subtitle">El último cargado sale primero en destino.</p>
+                </div>
+                <div class="flex gap-2">
+                  <button id="btnDeshacer" class="btn-secondary" title="Revierte la última carga (por si te equivocaste)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6-6M3 10l6 6"/></svg>
+                    Deshacer
+                  </button>
+                  <button id="btnDescargar" class="btn-secondary" title="Baja el paquete del tope (entrega)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M17 10l-5 5-5-5M12 15V3"/></svg>
+                    Descargar
+                  </button>
+                </div>
+              </div>
+              <ul id="listaCamion" class="mt-5 space-y-2"></ul>
+              <div id="camionEmpty" class="empty hidden">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h11v9H3zM14 10h4l3 3v3h-7m-4 0a2 2 0 104 0m7 0a2 2 0 104 0"/></svg>
+                <h3>Camión vacío</h3>
+                <p>Vas a ver los paquetes cargados acá. <a href="#/paquetes" class="text-brand font-semibold hover:underline">Cargá el primero →</a></p>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div class="card">
+                <p class="stat-label">Total cargado</p>
+                <p class="stat-value text-3xl mt-2" id="camionTotal">0</p>
+                <p class="text-sm text-ink-500">paquetes en el camión</p>
+              </div>
+              <div class="card">
+                <p class="stat-label">Peso total</p>
+                <p class="stat-value text-3xl mt-2" id="camionPeso">0 kg</p>
+                <p class="text-sm text-ink-500">suma de todos los paquetes</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================== VIEW: DEPOSITOS ======================== -->
+        <section data-view="depositos" class="view space-y-6 hidden">
+          <div class="card">
+            <div class="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 class="card-title">Red de depósitos</h2>
+                <p class="card-subtitle">Listado completo y estado de auditoría.</p>
+              </div>
+              <div class="flex flex-wrap items-end gap-3">
+                <div>
+                  <label class="label">Fecha de referencia</label>
+                  <input id="fechaAuditoria" type="datetime-local" class="field w-56">
+                </div>
+                <button id="btnAuditar" class="btn-primary">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  Ejecutar auditoría
+                </button>
+              </div>
+            </div>
+            <div id="auditoriaResultado" class="mt-4 hidden"></div>
+          </div>
+
+          <div class="card">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="card-title">Depósitos</h3>
+              <span id="depositosCount" class="text-xs text-ink-500"></span>
+            </div>
+            <div id="listaDepositos" class="space-y-2"></div>
+            <div id="depositosEmpty" class="empty hidden">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V10M5 21V10m-2 0h18M6 10l6-7 6 7"/></svg>
+              <h3>No hay depósitos</h3>
+              <p>Cargá el inventario para ver la red.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================== VIEW: RUTAS ======================== -->
+        <section data-view="rutas" class="view space-y-6 hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div class="card lg:col-span-3">
+              <h2 class="card-title">Calcular ruta más corta</h2>
+              <p class="card-subtitle">Elegí origen y destino para ver la distancia mínima.</p>
+              <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="label">Origen</label>
+                  <select id="selectOrigen" class="field"></select>
+                </div>
+                <div>
+                  <label class="label">Destino</label>
+                  <select id="selectDestino" class="field"></select>
+                </div>
+              </div>
+              <button id="btnDistancia" class="btn-primary w-full mt-4">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Calcular
+              </button>
+              <div id="resultadoDistancia" class="mt-4"></div>
+            </div>
+
+            <div class="card lg:col-span-2">
+              <h3 class="card-title">Conexiones disponibles</h3>
+              <p class="card-subtitle">Rutas directas cargadas en el sistema.</p>
+              <ul id="listaRutas" class="mt-4 space-y-2 text-sm"></ul>
+              <div id="rutasEmpty" class="empty hidden">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5-2V6l5 2m0 12l6-2m-6 2V8m6 10l5 2V8l-5-2"/></svg>
+                <h3>Sin rutas</h3>
+                <p>Cargá el inventario primero.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================== VIEW: GUIA ======================== -->
+        <section data-view="guia" class="view space-y-6 hidden">
+          <div class="card bg-gradient-to-br from-brand-soft to-white">
+            <h2 class="text-xl font-bold text-ink-900">Cómo usar Logi-UADE</h2>
+            <p class="text-sm text-ink-600 mt-1 max-w-2xl">
+              Esta guía te lleva paso a paso por las operaciones típicas. Si es tu primera vez,
+              empezá por "Cargar inventario" en el header para traer los datos de ejemplo.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="card">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-brand-soft text-brand flex items-center justify-center font-bold">1</div>
+                <h3 class="card-title">Cargá el inventario</h3>
+              </div>
+              <p class="text-sm text-ink-600 mt-3">
+                Tocá <b>Cargar inventario</b> arriba a la derecha. Esto trae los paquetes pendientes,
+                los depósitos y las rutas disponibles. Lo podés hacer en cualquier momento para reiniciar el estado.
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-brand-soft text-brand flex items-center justify-center font-bold">2</div>
+                <h3 class="card-title">Registrá paquetes</h3>
+              </div>
+              <p class="text-sm text-ink-600 mt-3">
+                En <b>Paquetes</b> podés dar de alta uno nuevo con ID, peso, destino y marca de urgente.
+                Los urgentes y los que pesan más de <b>50&nbsp;kg</b> saltan al frente de la cola automáticamente.
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-brand-soft text-brand flex items-center justify-center font-bold">3</div>
+                <h3 class="card-title">Enviá al camión</h3>
+              </div>
+              <p class="text-sm text-ink-600 mt-3">
+                Desde <b>Paquetes</b> usá <b>Enviar siguiente</b> para procesar el paquete de mayor prioridad.
+                En <b>Camión</b> vas a ver la carga actual. El último cargado queda arriba (se entrega primero).
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-brand-soft text-brand flex items-center justify-center font-bold">4</div>
+                <h3 class="card-title">Deshacer o descargar</h3>
+              </div>
+              <p class="text-sm text-ink-600 mt-3">
+                En <b>Camión</b>, <b>Deshacer</b> revierte la última carga (por si te equivocaste).
+                <b>Descargar</b> baja el paquete del tope para entregarlo en destino.
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-brand-soft text-brand flex items-center justify-center font-bold">5</div>
+                <h3 class="card-title">Auditá depósitos</h3>
+              </div>
+              <p class="text-sm text-ink-600 mt-3">
+                En <b>Depósitos</b>, <b>Ejecutar auditoría</b> marca los que no fueron revisados en los últimos
+                30&nbsp;días. Podés cambiar la fecha de referencia si querés simular un corte distinto.
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-brand-soft text-brand flex items-center justify-center font-bold">6</div>
+                <h3 class="card-title">Calculá rutas</h3>
+              </div>
+              <p class="text-sm text-ink-600 mt-3">
+                En <b>Rutas</b>, elegí origen y destino del menú. El sistema calcula la ruta más corta
+                automáticamente sobre la red de depósitos disponibles.
+              </p>
+            </div>
+          </div>
+
+          <details class="card group">
+            <summary class="flex items-center justify-between cursor-pointer list-none">
+              <div>
+                <h3 class="card-title">Sobre las estructuras internas</h3>
+                <p class="card-subtitle">Detalles técnicos para quien quiera curiosear.</p>
+              </div>
+              <svg class="h-5 w-5 text-ink-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="mt-4 text-sm text-ink-600 space-y-3 leading-relaxed">
+              <p>El backend está escrito en Java e implementa las estructuras desde cero (sin usar <code class="text-xs bg-ink-100 px-1.5 py-0.5 rounded">java.util.TreeMap</code> ni similares):</p>
+              <ul class="space-y-2 pl-4">
+                <li><b>Camión</b>: pila LIFO con <code class="text-xs bg-ink-100 px-1.5 py-0.5 rounded">ArrayDeque</code>. Carga y deshacer en <b>O(1)</b>.</li>
+                <li><b>Centro de distribución</b>: cola con prioridad (<code class="text-xs bg-ink-100 px-1.5 py-0.5 rounded">PriorityQueue</code>) con desempate FIFO por orden de llegada. Encolar y desencolar en <b>O(log n)</b>.</li>
+                <li><b>Depósitos</b>: árbol binario de búsqueda (ABB) manual. Auditoría en post-orden, consulta por nivel con BFS.</li>
+                <li><b>Rutas</b>: grafo no dirigido con lista de adyacencia. Distancia mínima por <b>Dijkstra</b> en <b>O((V + E) log V)</b>.</li>
+              </ul>
+              <p class="text-xs text-ink-500">TPO de Algoritmos y Estructuras de Datos II — UADE 2026.</p>
+            </div>
+          </details>
+        </section>
+
+      </main>
     </div>
-  </header>
+  </div>
 
-  <main class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-6">
-
-    <!-- KPIs -->
-    <section class="col-span-12 grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-2xl p-5 shadow-card border border-ink-200/60">
-        <p class="text-xs uppercase tracking-wide text-ink-500">Centro de distribucion</p>
-        <p class="mt-2 text-3xl font-bold" id="kpiPendientes">0</p>
-        <p class="text-sm text-ink-500">paquetes pendientes</p>
-      </div>
-      <div class="bg-white rounded-2xl p-5 shadow-card border border-ink-200/60">
-        <p class="text-xs uppercase tracking-wide text-ink-500">Camion</p>
-        <p class="mt-2 text-3xl font-bold" id="kpiCamion">0</p>
-        <p class="text-sm text-ink-500">paquetes cargados</p>
-      </div>
-      <div class="bg-white rounded-2xl p-5 shadow-card border border-ink-200/60">
-        <p class="text-xs uppercase tracking-wide text-ink-500">Tope del camion</p>
-        <p class="mt-2 text-lg font-semibold truncate" id="kpiTope">—</p>
-        <p class="text-sm text-ink-500">ultimo cargado</p>
-      </div>
-      <div class="bg-white rounded-2xl p-5 shadow-card border border-ink-200/60">
-        <p class="text-xs uppercase tracking-wide text-ink-500">Endpoint</p>
-        <p class="mt-2 text-sm font-mono text-ink-700 truncate">localhost:7070</p>
-        <p class="text-sm text-success">● online</p>
-      </div>
-    </section>
-
-    <!-- Centro -->
-    <section class="col-span-12 lg:col-span-6 bg-white rounded-2xl p-6 shadow-card border border-ink-200/60">
-      <h2 class="text-base font-semibold">Centro de distribucion</h2>
-      <p class="text-sm text-ink-500 mt-1">Alta manual y procesamiento prioritario (urgente o &gt; 50 kg).</p>
-
-      <form id="formPaquete" class="mt-5 grid grid-cols-2 gap-3">
-        <input name="id" placeholder="ID (PKG-042)" class="field col-span-2 md:col-span-1" required>
-        <input name="peso" placeholder="Peso kg" type="number" step="0.1" min="0.1" class="field col-span-2 md:col-span-1" required>
-        <input name="destino" placeholder="Destino" class="field col-span-2 md:col-span-1" required>
-        <input name="contenido" placeholder="Contenido" class="field col-span-2 md:col-span-1">
-        <label class="col-span-2 flex items-center gap-2 text-sm text-ink-700">
-          <input type="checkbox" name="urgente" class="h-4 w-4 accent-primary"> Marcar como urgente
-        </label>
-        <button type="submit" class="col-span-2 btn-primary">Dar de alta</button>
-      </form>
-
-      <div class="mt-5 flex gap-2">
-        <button id="btnProcesar" class="btn-secondary flex-1">Procesar siguiente → camion</button>
-      </div>
-    </section>
-
-    <!-- Camion -->
-    <section class="col-span-12 lg:col-span-6 bg-white rounded-2xl p-6 shadow-card border border-ink-200/60">
-      <h2 class="text-base font-semibold">Camion (pila LIFO)</h2>
-      <p class="text-sm text-ink-500 mt-1">Ultimo cargado arriba. Undo en O(1).</p>
-
-      <div class="mt-5 flex gap-2">
-        <button id="btnDeshacer" class="btn-secondary flex-1">Deshacer ultima</button>
-        <button id="btnDescargar" class="btn-secondary flex-1">Descargar tope</button>
-      </div>
-
-      <ul id="listaCamion" class="mt-5 space-y-2 max-h-64 overflow-y-auto pr-1"></ul>
-    </section>
-
-    <!-- Depositos -->
-    <section class="col-span-12 lg:col-span-6 bg-white rounded-2xl p-6 shadow-card border border-ink-200/60">
-      <h2 class="text-base font-semibold">Depositos (ABB)</h2>
-      <p class="text-sm text-ink-500 mt-1">Auditoria post-orden y consulta por nivel (BFS).</p>
-
-      <div class="mt-5 flex gap-2 items-end">
-        <div class="flex-1">
-          <label class="text-xs text-ink-500">Fecha referencia (opcional)</label>
-          <input id="fechaAuditoria" type="datetime-local" class="field w-full">
-        </div>
-        <button id="btnAuditar" class="btn-primary">Auditar</button>
-      </div>
-      <div id="resultadoAuditoria" class="mt-3 text-sm text-ink-700"></div>
-
-      <div class="mt-5 flex gap-2 items-end">
-        <div class="flex-1">
-          <label class="text-xs text-ink-500">Nivel del arbol</label>
-          <input id="nivel" type="number" min="0" value="0" class="field w-full">
-        </div>
-        <button id="btnNivel" class="btn-secondary">Consultar nivel</button>
-      </div>
-      <ul id="listaNivel" class="mt-3 space-y-1 text-sm"></ul>
-    </section>
-
-    <!-- Rutas -->
-    <section class="col-span-12 lg:col-span-6 bg-white rounded-2xl p-6 shadow-card border border-ink-200/60">
-      <h2 class="text-base font-semibold">Rutas (grafo + Dijkstra)</h2>
-      <p class="text-sm text-ink-500 mt-1">Distancia minima entre depositos.</p>
-
-      <div class="mt-5 grid grid-cols-2 gap-3">
-        <div>
-          <label class="text-xs text-ink-500">Origen</label>
-          <input id="origen" type="number" class="field w-full" placeholder="10">
-        </div>
-        <div>
-          <label class="text-xs text-ink-500">Destino</label>
-          <input id="destino" type="number" class="field w-full" placeholder="90">
-        </div>
-      </div>
-      <button id="btnDistancia" class="mt-3 btn-primary w-full">Calcular distancia</button>
-      <div id="resultadoDistancia" class="mt-3 text-sm text-ink-700"></div>
-    </section>
-
-    <!-- Log -->
-    <section class="col-span-12 bg-white rounded-2xl p-6 shadow-card border border-ink-200/60">
-      <div class="flex items-center justify-between">
-        <h2 class="text-base font-semibold">Actividad</h2>
-        <button id="btnLimpiarLog" class="text-xs text-ink-500 hover:text-ink-700">Limpiar</button>
-      </div>
-      <ul id="log" class="mt-3 space-y-1 text-sm font-mono max-h-72 overflow-y-auto"></ul>
-    </section>
-
-  </main>
+  <!-- Mobile nav overlay -->
+  <div id="mobileNav" class="hidden fixed inset-0 z-40 lg:hidden">
+    <div class="absolute inset-0 bg-ink-900/50" data-close-nav></div>
+    <nav class="absolute left-0 top-0 bottom-0 w-64 bg-white shadow-pop p-4 space-y-1">
+      <a href="#/inicio" data-route="inicio" data-close-nav class="nav-item">Inicio</a>
+      <a href="#/paquetes" data-route="paquetes" data-close-nav class="nav-item">Paquetes</a>
+      <a href="#/camion" data-route="camion" data-close-nav class="nav-item">Camión</a>
+      <a href="#/depositos" data-route="depositos" data-close-nav class="nav-item">Depósitos</a>
+      <a href="#/rutas" data-route="rutas" data-close-nav class="nav-item">Rutas</a>
+      <a href="#/guia" data-route="guia" data-close-nav class="nav-item">Cómo usar</a>
+    </nav>
+  </div>
 
   <div id="toastHost" class="fixed bottom-6 right-6 flex flex-col gap-2 z-50"></div>
 
-  <script src="/app.js"></script>
+  <script src="/app.js?v=2"></script>
 </body>
 </html>

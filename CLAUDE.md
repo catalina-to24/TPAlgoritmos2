@@ -97,15 +97,18 @@ Expuesta por `WebServer`. Todos los endpoints responden JSON via `JsonWriter` (e
 | Metodo | Ruta                                           | Mapea a                                |
 |--------|------------------------------------------------|----------------------------------------|
 | POST   | `/api/inventario/cargar`                       | `service.cargarInventario(Path)`       |
-| GET    | `/api/estado`                                  | KPIs (pendientes centro, camion, tope) |
+| GET    | `/api/estado`                                  | KPIs + totales + `inventarioCargado`   |
+| GET    | `/api/centro/paquetes`                         | `service.verPendientesCentro()`        |
 | POST   | `/api/centro/paquetes`                         | `service.crearPaqueteManual(...)`      |
 | POST   | `/api/camion/cargar`                           | `procesarSiguiente` + `cargarEnCamion` |
 | POST   | `/api/camion/deshacer`                         | `service.deshacerUltimaCargaCamion()`  |
 | POST   | `/api/camion/descargar`                        | `service.descargarCamion()`            |
-| GET    | `/api/camion`                                  | `service.verCargaCamion()`             |
+| GET    | `/api/camion`                                  | carga actual + `pesoTotal`             |
 | POST   | `/api/depositos/auditar`                       | `service.auditarDepositos(...)`        |
-| GET    | `/api/depositos/nivel/{n}`                     | `service.depositosPorNivel(int)`       |
+| GET    | `/api/depositos`                               | `service.listarDepositos()` (in-order) |
+| GET    | `/api/depositos/nivel/{n}`                     | `service.depositosPorNivel(int)` (BFS) |
 | GET    | `/api/depositos/{id}`                          | `service.buscarDeposito(int)`          |
+| GET    | `/api/rutas`                                   | `service.listarRutas()` (sin duplicar) |
 | GET    | `/api/rutas/distancia?origen=X&destino=Y`      | `service.distanciaMinimaEntreDepositos`|
 
 Errores de dominio (`IllegalArgumentException`, `IllegalStateException`, `NoSuchElementException`) → `400` con body `{ "error": "..." }`. Cualquier otra excepcion → `500`.
@@ -127,3 +130,14 @@ Errores de dominio (`IllegalArgumentException`, `IllegalStateException`, `NoSuch
 - `FLUJOS.md` — los 10 flujos funcionales de la aplicacion con backend/TDA involucrada y resultado esperado. Leerlo antes de cambiar la UI o un endpoint.
 - `PRUEBAS.md` — resultados de la ultima batida de tests end-to-end manual con Playwright, con screenshots en `tmp/pruebas-ui/`. No es un CI — es un registro de la ultima verificacion humana.
 - `Consigna.pdf` — la fuente de verdad. Cuando dudes de un requisito, abrilo.
+
+## Testing end-to-end con Playwright MCP (modo RDP)
+
+Los tests end-to-end de la web se corren con el plugin **Playwright MCP** y el browser **visible en el escritorio RDP** del usuario — no se usa modo headless. El punto es que el usuario pueda ver lo que el agente hace mientras testea.
+
+- El plugin ya esta instalado. Su config vive en `~/.claude/plugins/cache/claude-plugins-official/playwright/unknown/.mcp.json` con los env vars `DISPLAY=:10.0` y `XAUTHORITY=/home/clawdio/.Xauthority` — eso enchufa Chromium al X server del xrdp. Si el browser arranca headless o no se ve, revisar ese archivo primero.
+- El server se corre **en una sesion tmux** (`tmux new-session -d -s logiuade 'java -cp out ar.edu.uade.logistica.Main'`) para que sobreviva al cierre del RDP. Ver con `tmux attach -t logiuade`, matar con `tmux kill-session -t logiuade`.
+- Target del server: `http://localhost:7070/` (o `http://192.168.1.101:7070/` desde otra maquina en la LAN).
+- xrdp ya esta configurado para persistir al desconectar (`/etc/xrdp/sesman.ini`: `KillDisconnected=false`, `DisconnectedTimeLimit=0`, `IdleTimeLimit=0`). Cerrar el RDP no mata Chromium ni el server.
+- Screenshots de las corridas van a `tmp/pruebas-ui/` — ahi se documentan los flujos probados (ver `PRUEBAS.md`).
+- Las herramientas de Playwright MCP son **deferred tools**: antes de invocarlas hay que cargar el schema con `ToolSearch query="select:mcp__playwright__browser_navigate,mcp__playwright__browser_snapshot,..."`. Llamarlas sin cargar el schema da `InputValidationError`.

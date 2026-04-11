@@ -2,6 +2,7 @@ package ar.edu.uade.logistica.web;
 
 import ar.edu.uade.logistica.model.Deposito;
 import ar.edu.uade.logistica.model.Paquete;
+import ar.edu.uade.logistica.model.Ruta;
 
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,11 @@ public final class JsonWriter {
             writePaquete(sb, p);
         } else if (value instanceof Deposito d) {
             writeDeposito(sb, d);
+        } else if (value instanceof Ruta r) {
+            sb.append("{\"origen\":").append(r.origen())
+              .append(",\"destino\":").append(r.destino())
+              .append(",\"distanciaKm\":").append(r.distanciaKm())
+              .append('}');
         } else if (value instanceof Map<?, ?> m) {
             writeMap(sb, m);
         } else if (value instanceof List<?> l) {
