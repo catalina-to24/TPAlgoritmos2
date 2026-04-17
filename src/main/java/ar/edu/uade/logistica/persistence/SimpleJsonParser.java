@@ -5,14 +5,35 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Parser JSON minimalista implementado a mano con recursive descent. Soporta los tipos
+ * basicos: objetos, arrays, strings (con escapes y unicode de 4 digitos hex), numeros (enteros y
+ * decimales), {@code true}, {@code false} y {@code null}.
+ *
+ * <p>Por que parser casero en vez de Jackson/Gson: la consigna pide evitar dependencias
+ * externas. El JSON del inventario es estructuralmente simple, asi que un parser recursive
+ * descent de ~150 lineas alcanza. Ademas, mantener cero libs agiliza el build con
+ * {@code javac} plano.
+ *
+ * <p>Salida: los objetos JSON se mapean a {@link LinkedHashMap} (preserva orden de insercion
+ * para que los mensajes de error y los dumps sean reproducibles), los arrays a
+ * {@link ArrayList}, los numeros a {@code Long} o {@code Double} segun tengan coma decimal,
+ * y el resto a los tipos nativos de Java.
+ */
 public class SimpleJsonParser {
     private final String text;
     private int index;
 
+    /** Constructor privado: el unico punto de entrada es {@link #parse(String)}. */
     private SimpleJsonParser(String text) {
         this.text = text;
     }
 
+    /**
+     * Parsea un documento JSON completo y valida que no haya contenido despues.
+     * Usar un entry-point estatico oculta el estado mutable del cursor ({@code index})
+     * y evita que el caller pueda reutilizar un parser "a medio consumir".
+     */
     public static Object parse(String text) {
         SimpleJsonParser parser = new SimpleJsonParser(text);
         Object value = parser.parseValue();
@@ -23,6 +44,11 @@ public class SimpleJsonParser {
         return value;
     }
 
+    /**
+     * Selecciona el sub-parser en funcion del primer caracter no-blanco.
+     * Es el dispatch central del recursive descent: mirar un solo caracter alcanza para
+     * decidir el tipo del proximo valor en JSON bien formado.
+     */
     private Object parseValue() {
         skipWhitespace();
         if (index >= text.length()) {
@@ -45,6 +71,10 @@ public class SimpleJsonParser {
         };
     }
 
+    /**
+     * Parsea un objeto {@code { "clave": valor, ... }}.
+     * Usa {@link LinkedHashMap} para preservar el orden de aparicion de las claves.
+     */
     private Map<String, Object> parseObject() {
         expect('{');
         skipWhitespace();
@@ -68,6 +98,7 @@ public class SimpleJsonParser {
         }
     }
 
+    /** Parsea un array {@code [ v1, v2, ... ]} preservando el orden. */
     private List<Object> parseArray() {
         expect('[');
         skipWhitespace();
@@ -87,6 +118,11 @@ public class SimpleJsonParser {
         }
     }
 
+    /**
+     * Parsea un string entre comillas dobles, interpretando los escapes estandar de JSON.
+     * No se usa {@code String.split} ni regex para evitar sobrecosto innecesario en una
+     * ruta de codigo tan caliente como el parseo de payloads.
+     */
     private String parseString() {
         expect('"');
         StringBuilder builder = new StringBuilder();
@@ -117,6 +153,10 @@ public class SimpleJsonParser {
         throw new IllegalArgumentException("JSON invalido: string sin cerrar.");
     }
 
+    /**
+     * Decodifica un escape de 4 digitos hexadecimales consumiendo la secuencia y
+     * devolviendo el char correspondiente.
+     */
     private char parseUnicode() {
         if (index + 4 > text.length()) {
             throw new IllegalArgumentException("JSON invalido: unicode incompleto.");
@@ -126,6 +166,10 @@ public class SimpleJsonParser {
         return (char) Integer.parseInt(hex, 16);
     }
 
+    /**
+     * Consume un literal ({@code true}, {@code false}, {@code null}) exacto.
+     * {@code startsWith(literal, index)} evita crear substrings innecesarios.
+     */
     private Object parseLiteral(String literal, Object value) {
         if (!text.startsWith(literal, index)) {
             throw new IllegalArgumentException("JSON invalido: literal inesperado.");
@@ -134,6 +178,14 @@ public class SimpleJsonParser {
         return value;
     }
 
+    /**
+     * Parsea un numero: entero o decimal. La presencia del punto decide si se devuelve
+     * {@code Long} o {@code Double}, lo que le ahorra un casteo al InventarioLoader al
+     * elegir entre {@code getInt}/{@code getDouble}.
+     *
+     * <p>No soporta exponentes (1e5) porque el dataset del inventario no los usa; si
+     * aparecieran, el substring lanza {@code NumberFormatException} y queda claro.
+     */
     private Number parseNumber() {
         int start = index;
         if (text.charAt(index) == '-') {
@@ -152,6 +204,11 @@ public class SimpleJsonParser {
         return Long.parseLong(text.substring(start, index));
     }
 
+    /**
+     * Avanza whitespace y consume el caracter esperado, fallando si no esta.
+     * Es el helper que da "modo estricto" al parser: cualquier desvio del formato JSON
+     * aborta con mensaje explicito.
+     */
     private void expect(char expected) {
         skipWhitespace();
         if (index >= text.length() || text.charAt(index) != expected) {
@@ -160,11 +217,13 @@ public class SimpleJsonParser {
         index++;
     }
 
+    /** Mira el proximo caracter no-blanco sin consumirlo. Base del look-ahead del parser. */
     private boolean peek(char expected) {
         skipWhitespace();
         return index < text.length() && text.charAt(index) == expected;
     }
 
+    /** Avanza sobre espacios, tabs, newlines — todo lo que JSON considera blanco. */
     private void skipWhitespace() {
         while (index < text.length() && Character.isWhitespace(text.charAt(index))) {
             index++;

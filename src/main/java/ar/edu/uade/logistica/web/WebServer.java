@@ -22,6 +22,16 @@ import java.util.Map;
  * Servidor HTTP minimalista sobre {@link HttpServer} de la JDK. Expone la API REST
  * que consume el front-end y sirve los estaticos desde classpath {@code /web}.
  * Sin dependencias externas.
+ *
+ * <p>Por que {@code com.sun.net.httpserver} y no Javalin/Spark/Spring: la consigna pide
+ * evitar dependencias externas. El {@code HttpServer} de la JDK no es glamoroso pero
+ * alcanza para una API de ~12 endpoints. Se paga el precio de escribir a mano el routing
+ * por prefijo y el manejo de errores, pero se mantiene el stack en Java puro.
+ *
+ * <p>Concurrencia: la JDK puede atender requests en paralelo. Cada handler sincroniza
+ * sobre la misma instancia de {@link LogisticaService} con {@code synchronized (service)}
+ * para que las mutaciones sobre los TDA sean serializables. No se persigue throughput:
+ * este es un TPO academico, la correctitud va primero.
  */
 public class WebServer {
 
@@ -32,10 +42,23 @@ public class WebServer {
         this.port = port;
     }
 
+    /** Entry-point estatico para que {@link ar.edu.uade.logistica.Main} arranque sin instanciar a mano. */
     public static void start(int port) throws IOException {
         new WebServer(port).run();
     }
 
+    /**
+     * Registra todos los contextos HTTP y arranca el servidor.
+     *
+     * <p>Orden del registro: las rutas mas especificas se registran ANTES que las generales
+     * porque {@code HttpServer} resuelve por prefijo mas largo. Por eso
+     * {@code /api/depositos/nivel/} y {@code /api/depositos/auditar} van antes que
+     * {@code /api/depositos}, y {@code /api/rutas/distancia} antes que {@code /api/rutas}.
+     *
+     * <p>El bind a {@code 0.0.0.0} (implicito en {@code new InetSocketAddress(port)}) es
+     * intencional: permite acceso desde otras maquinas de la LAN sin configuracion extra
+     * (comentado en CLAUDE.md).
+     */
     public void run() throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
@@ -61,6 +84,10 @@ public class WebServer {
 
     // ---------- handlers ----------
 
+    /**
+     * POST /api/inventario/cargar — recibe {@code { "path": "..." }} y carga el JSON
+     * del inventario. El path default permite que la UI lo invoque sin payload.
+     */
     private String cargarInventario(HttpExchange ex) throws IOException {
         requireMethod(ex, "POST");
         Map<String, Object> body = readJsonObject(ex);
@@ -77,6 +104,12 @@ public class WebServer {
         }
     }
 
+    /**
+     * GET /api/estado — KPIs para el dashboard (pendientes, carga del camion, etc).
+     *
+     * <p>Se usa {@link HashMap} en vez de {@link Map#of} para permitir el valor {@code null}
+     * de {@code topeCamion} cuando el camion esta vacio. {@code Map.of} no acepta nulls.
+     */
     private String estado(HttpExchange ex) {
         requireMethod(ex, "GET");
         synchronized (service) {
@@ -92,11 +125,18 @@ public class WebServer {
             m.put("topeCamion", carga.isEmpty() ? null : carga.get(0));
             m.put("totalDepositos", totalDepositos);
             m.put("totalRutas", totalRutas);
+            // Heuristica "hay inventario cargado": alcanza con que exista al menos
+            // un elemento en alguno de los tres TDA poblados por la carga.
             m.put("inventarioCargado", pendientes + cantidadCamion + totalDepositos > 0);
             return JsonWriter.toJson(m);
         }
     }
 
+    /**
+     * GET/POST /api/centro/paquetes — GET devuelve los pendientes; POST da de alta
+     * un paquete manual. Se combina en un handler porque comparten recurso
+     * (es el listado y la creacion del mismo agregado).
+     */
     private String centroPaquetes(HttpExchange ex) throws IOException {
         String method = ex.getRequestMethod();
         if ("GET".equalsIgnoreCase(method)) {
@@ -122,6 +162,10 @@ public class WebServer {
         }
     }
 
+    /**
+     * POST /api/camion/cargar — flujo combinado: saca del centro y apila en el camion.
+     * Se hace en el server y no en el cliente para garantizar atomicidad sobre el lock.
+     */
     private String cargarCamion(HttpExchange ex) {
         requireMethod(ex, "POST");
         synchronized (service) {
@@ -131,6 +175,7 @@ public class WebServer {
         }
     }
 
+    /** POST /api/camion/deshacer — pop de la pila del camion. */
     private String deshacerCamion(HttpExchange ex) {
         requireMethod(ex, "POST");
         synchronized (service) {
@@ -138,6 +183,7 @@ public class WebServer {
         }
     }
 
+    /** POST /api/camion/descargar — pop de la pila del camion (entrega en destino). */
     private String descargarCamion(HttpExchange ex) {
         requireMethod(ex, "POST");
         synchronized (service) {
@@ -145,6 +191,7 @@ public class WebServer {
         }
     }
 
+    /** GET /api/camion — vista de la carga actual con totales. */
     private String verCamion(HttpExchange ex) {
         requireMethod(ex, "GET");
         synchronized (service) {
@@ -156,6 +203,12 @@ public class WebServer {
         }
     }
 
+    /**
+     * POST /api/depositos/auditar — corre la auditoria post-orden.
+     *
+     * <p>El body es opcional: si no viene {@code fechaReferencia} se usa {@code now()}.
+     * Esto permite desde la UI simular auditorias hacia el pasado (util para demos).
+     */
     private String auditar(HttpExchange ex) throws IOException {
         requireMethod(ex, "POST");
         Map<String, Object> body = ex.getRequestBody().available() > 0 ? readJsonObject(ex) : Map.of();
@@ -171,6 +224,11 @@ public class WebServer {
         }
     }
 
+    /**
+     * GET /api/depositos/nivel/{n} — reporte BFS por nivel.
+     * Se extrae {@code n} del path manualmente porque el {@code HttpServer} de la JDK
+     * no tiene routing por parametros.
+     */
     private String depositosPorNivel(HttpExchange ex) {
         requireMethod(ex, "GET");
         String path = ex.getRequestURI().getPath();
@@ -184,6 +242,13 @@ public class WebServer {
         }
     }
 
+    /**
+     * GET /api/depositos[/{id}] — listado general o busqueda puntual.
+     *
+     * <p>Se combinan en un handler porque comparten prefijo y ambos son GET. La logica
+     * de ramificacion distingue por presencia y forma del sufijo: sin sufijo lista,
+     * con {@code /N} busca. Si el sufijo tiene otra forma, se rechaza con 400.
+     */
     private String depositos(HttpExchange ex) {
         requireMethod(ex, "GET");
         String path = ex.getRequestURI().getPath();
@@ -205,6 +270,7 @@ public class WebServer {
         }
     }
 
+    /** GET /api/rutas — listado sin duplicar aristas. */
     private String listarRutas(HttpExchange ex) {
         requireMethod(ex, "GET");
         synchronized (service) {
@@ -213,6 +279,7 @@ public class WebServer {
         }
     }
 
+    /** GET /api/rutas/distancia?origen=X&destino=Y — Dijkstra sobre el grafo. */
     private String distancia(HttpExchange ex) {
         requireMethod(ex, "GET");
         Map<String, String> q = parseQuery(ex.getRequestURI());
@@ -226,11 +293,19 @@ public class WebServer {
 
     // ---------- helpers ----------
 
+    /** Interfaz funcional local para poder lanzar excepciones checked desde los handlers. */
     @FunctionalInterface
     private interface JsonEndpoint {
         String handle(HttpExchange ex) throws Exception;
     }
 
+    /**
+     * Adapta un {@link JsonEndpoint} a {@link HttpHandler}, centralizando el manejo de
+     * errores: las excepciones de dominio ({@link IllegalArgumentException},
+     * {@link IllegalStateException}, {@link java.util.NoSuchElementException}) se
+     * traducen a 400 (error del cliente / estado invalido); cualquier otra excepcion
+     * es un bug y se devuelve como 500 con stacktrace a consola.
+     */
     private HttpHandler json(JsonEndpoint endpoint) {
         return exchange -> {
             try {
@@ -245,6 +320,7 @@ public class WebServer {
         };
     }
 
+    /** Escribe la respuesta como JSON UTF-8 con el status indicado. */
     private void sendJson(HttpExchange ex, int status, String body) throws IOException {
         byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
         ex.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
@@ -253,12 +329,18 @@ public class WebServer {
         ex.getResponseBody().close();
     }
 
+    /** Valida que el metodo HTTP sea el esperado. Si no, lanza 400 via {@link #json}. */
     private void requireMethod(HttpExchange ex, String method) {
         if (!method.equalsIgnoreCase(ex.getRequestMethod())) {
             throw new IllegalArgumentException("Metodo no permitido: " + ex.getRequestMethod());
         }
     }
 
+    /**
+     * Lee el body como JSON y lo exige objeto. Devuelve {@link Map#of()} vacio si no hay
+     * body para que los handlers tolerantes (p.ej. auditar) no tengan que distinguir
+     * "sin body" de "body vacio".
+     */
     @SuppressWarnings("unchecked")
     private Map<String, Object> readJsonObject(HttpExchange ex) throws IOException {
         byte[] raw = ex.getRequestBody().readAllBytes();
@@ -272,12 +354,18 @@ public class WebServer {
         return (Map<String, Object>) m;
     }
 
+    /** Coerce a {@code double}: acepta {@link Number} (lo habitual del parser) o string. */
     private static double toDouble(Object o) {
         if (o == null) throw new IllegalArgumentException("peso requerido");
         if (o instanceof Number n) return n.doubleValue();
         return Double.parseDouble(o.toString());
     }
 
+    /**
+     * Parseo manual de query string. No decodifica {@code %XX} porque el dominio no usa
+     * valores con caracteres raros en query (solo ints); si alguna vez hace falta, cambiar
+     * por {@link java.net.URLDecoder}.
+     */
     private static Map<String, String> parseQuery(URI uri) {
         Map<String, String> result = new HashMap<>();
         String q = uri.getRawQuery();
@@ -292,10 +380,21 @@ public class WebServer {
 
     // ---------- estaticos ----------
 
+    /**
+     * Handler que sirve archivos del front-end desde classpath ({@code /web/*}).
+     *
+     * <p>Por que desde classpath y no desde filesystem: al compilar se copia
+     * {@code src/main/resources/web} a {@code out/web} y los estaticos viajan con las
+     * clases. Esto permite distribuir el jar sin depender de rutas absolutas.
+     *
+     * <p>Se bloquea {@code ..} en el path como medida minima contra path traversal: el
+     * endpoint es publico por LAN, asi que aun siendo un TPO, mejor no servir {@code ../etc/passwd}.
+     */
     private static class StaticHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange ex) throws IOException {
             String path = ex.getRequestURI().getPath();
+            // Aliases: "/" y "/cuestionario" mapean a sus HTML, para URLs limpias en la UI.
             if (path.equals("/")) {
                 path = "/index.html";
             } else if (path.equals("/cuestionario")) {
@@ -316,6 +415,8 @@ public class WebServer {
                 }
                 byte[] bytes = is.readAllBytes();
                 ex.getResponseHeaders().set("Content-Type", contentType(path));
+                // no-store para que durante el desarrollo el navegador no quede pegado
+                // a una version vieja del JS/HTML tras un rebuild.
                 ex.getResponseHeaders().set("Cache-Control", "no-store, must-revalidate");
                 ex.sendResponseHeaders(200, bytes.length);
                 ex.getResponseBody().write(bytes);
@@ -323,6 +424,7 @@ public class WebServer {
             }
         }
 
+        /** Mapeo extension -> Content-Type. Lo suficiente para los tipos que sirve la UI. */
         private static String contentType(String path) {
             if (path.endsWith(".html")) return "text/html; charset=utf-8";
             if (path.endsWith(".js")) return "application/javascript; charset=utf-8";

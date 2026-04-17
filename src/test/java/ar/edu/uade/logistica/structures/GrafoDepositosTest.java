@@ -5,7 +5,21 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Tests de {@link GrafoDepositos}. Valida que Dijkstra elija el camino mas corto cuando
+ * hay rutas alternativas con distintas distancias.
+ */
 class GrafoDepositosTest {
+    /**
+     * Topologia con dos caminos posibles de 50 a 30:
+     * <ul>
+     *     <li>50 -> 20 -> 30 = 700 + 300 = 1000 km</li>
+     *     <li>50 -> 80 -> 30 = 1100 + 200 = 1300 km</li>
+     * </ul>
+     * El test fuerza que Dijkstra descarte el camino mas corto en saltos (ambos tienen
+     * 2) y prefiera el de menor distancia acumulada, que es lo que exige la consigna
+     * al pedir "distancia minima" en vez de "cantidad minima de paradas".
+     */
     @Test
     void encuentraLaRutaMasCorta() {
         GrafoDepositos grafo = new GrafoDepositos();

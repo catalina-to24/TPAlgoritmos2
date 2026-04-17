@@ -13,7 +13,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Adaptador entre el JSON crudo (parseado por {@link SimpleJsonParser}) y las entidades
+ * del dominio ({@link Paquete}, {@link Deposito}, {@link Ruta}).
+ *
+ * <p>Por que separado del parser: el parser solo entiende sintaxis JSON; este loader
+ * entiende el contrato del inventario ({@code paquetes}, {@code depositos}, {@code rutas})
+ * y valida tipos campo por campo. Mantenerlos separados facilita los tests y reutilizar
+ * el parser en otros contextos (p.ej. {@code WebServer.readJsonObject}).
+ */
 public class InventarioLoader {
+
+    /**
+     * Lee el archivo indicado, lo parsea como JSON y construye el {@link Inventario}.
+     * Falla con {@link IllegalArgumentException} si la raiz no es un objeto o si falta
+     * algun campo requerido.
+     */
     public Inventario cargar(Path path) throws IOException {
         String json = Files.readString(path);
         Object parsed = SimpleJsonParser.parse(json);
@@ -27,6 +42,11 @@ public class InventarioLoader {
         return new Inventario(paquetes, depositos, rutas);
     }
 
+    /**
+     * Convierte el array JSON de paquetes en entidades tipadas. Si el valor no es una
+     * lista se devuelve una lista vacia — tolerar un JSON sin la seccion permite datasets
+     * parciales (p.ej. solo depositos y rutas).
+     */
     private List<Paquete<String>> cargarPaquetes(Object value) {
         List<Paquete<String>> paquetes = new ArrayList<>();
         if (!(value instanceof List<?> items)) {
@@ -45,6 +65,7 @@ public class InventarioLoader {
         return paquetes;
     }
 
+    /** Idem {@link #cargarPaquetes(Object)} pero para depositos. */
     private List<Deposito> cargarDepositos(Object value) {
         List<Deposito> depositos = new ArrayList<>();
         if (!(value instanceof List<?> items)) {
@@ -62,6 +83,7 @@ public class InventarioLoader {
         return depositos;
     }
 
+    /** Idem pero para rutas; delega a {@link Ruta} la validacion de distancia positiva. */
     private List<Ruta> cargarRutas(Object value) {
         List<Ruta> rutas = new ArrayList<>();
         if (!(value instanceof List<?> items)) {
@@ -78,6 +100,7 @@ public class InventarioLoader {
         return rutas;
     }
 
+    /** Type-check defensivo: si el parser devolvio algo que no es mapa, falla con mensaje claro. */
     private Map<?, ?> asMap(Object value, String message) {
         if (!(value instanceof Map<?, ?> map)) {
             throw new IllegalArgumentException(message);
@@ -85,6 +108,7 @@ public class InventarioLoader {
         return map;
     }
 
+    /** Helper tipado para strings requeridos. Centraliza el mensaje de error. */
     private String getString(Map<?, ?> map, String key) {
         Object value = map.get(key);
         if (!(value instanceof String text)) {
@@ -93,6 +117,7 @@ public class InventarioLoader {
         return text;
     }
 
+    /** Helper tipado para booleanos requeridos. */
     private boolean getBoolean(Map<?, ?> map, String key) {
         Object value = map.get(key);
         if (!(value instanceof Boolean bool)) {
@@ -101,6 +126,11 @@ public class InventarioLoader {
         return bool;
     }
 
+    /**
+     * Helper para enteros. Acepta cualquier {@link Number} porque el parser puede emitir
+     * {@code Long} (enteros sin decimal) y queremos tolerar igualmente un {@code Double}
+     * "entero" (p.ej. 3.0) sin falso positivo.
+     */
     private int getInt(Map<?, ?> map, String key) {
         Object value = map.get(key);
         if (!(value instanceof Number number)) {
@@ -109,6 +139,7 @@ public class InventarioLoader {
         return number.intValue();
     }
 
+    /** Helper para decimales; mismo criterio que {@link #getInt}. */
     private double getDouble(Map<?, ?> map, String key) {
         Object value = map.get(key);
         if (!(value instanceof Number number)) {
@@ -117,6 +148,11 @@ public class InventarioLoader {
         return number.doubleValue();
     }
 
+    /**
+     * Convierte una fecha ISO-8601 a {@link LocalDateTime}. Acepta {@code null} porque
+     * {@code fechaUltimaAuditoria} puede no estar seteada cuando el deposito nunca fue
+     * auditado.
+     */
     private LocalDateTime getNullableDateTime(Object value) {
         if (value == null) {
             return null;

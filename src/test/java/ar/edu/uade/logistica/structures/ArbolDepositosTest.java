@@ -10,7 +10,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Tests de {@link ArbolDepositos}. Cubren los dos comportamientos criticos:
+ * la semantica invertida de "visitado" en la auditoria y el recorrido por nivel con BFS.
+ */
 class ArbolDepositosTest {
+    /**
+     * Auditoria contra un arbol con tres depositos:
+     * <ul>
+     *     <li>raiz (id 50): auditado hace 70 dias -> pendiente, se marca visitado=true.</li>
+     *     <li>izquierdo (id 20): auditado hace 10 dias -> OK, queda visitado=false.</li>
+     *     <li>derecho (id 80): nunca auditado (fecha null) -> pendiente, visitado=true.</li>
+     * </ul>
+     *
+     * El orden esperado de auditados es {@code [80, 50]}: post-orden visita izq, der, raiz.
+     * El izquierdo no entra en la lista porque no requirio auditoria. Este test es el que
+     * valida la redaccion literal de la consigna (ver nota en CLAUDE.md: visitado=true
+     * significa "requiere auditoria").
+     */
     @Test
     void auditaEnPostOrdenYMarcaSoloPendientes() {
         ArbolDepositos arbol = new ArbolDepositos();
@@ -30,6 +47,12 @@ class ArbolDepositosTest {
         assertTrue(der.isVisitado());
     }
 
+    /**
+     * Arma un arbol de 4 nodos y pide el nivel 1. El orden esperado es izq-der (20, 80)
+     * porque BFS por niveles visita primero el hijo izquierdo de la raiz. El nivel 2
+     * (donde esta id=10) queda fuera del resultado, lo que valida que el filtro funcione
+     * y no devuelva nodos de niveles posteriores por error.
+     */
     @Test
     void devuelveDepositosPorNivel() {
         ArbolDepositos arbol = new ArbolDepositos();
