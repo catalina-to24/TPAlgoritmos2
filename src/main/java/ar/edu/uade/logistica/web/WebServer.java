@@ -298,6 +298,8 @@ public class WebServer {
             String path = ex.getRequestURI().getPath();
             if (path.equals("/")) {
                 path = "/index.html";
+            } else if (path.equals("/cuestionario")) {
+                path = "/cuestionario.html";
             }
             if (path.contains("..")) {
                 ex.sendResponseHeaders(400, -1);

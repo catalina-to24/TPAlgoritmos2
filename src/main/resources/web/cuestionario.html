@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario - Programación 2</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root,[data-theme="dark"]{
+    --bg:#0f172a;--bg-elev:#1e293b;--bg-header-from:#1e293b;--bg-header-to:#0f172a;
+    --border:#334155;--border-soft:#475569;
+    --text:#e2e8f0;--text-strong:#f1f5f9;--text-mute:#94a3b8;
+    --accent:#60a5fa;--accent-strong:#3b82f6;--accent-bg:rgba(59,130,246,.125);
+    --option-bg:#0f172a;--option-letter-bg:#334155;--option-letter-text:#94a3b8;
+    --gradient-1:#38bdf8;--gradient-2:#818cf8;
+    --feedback-correct:#4ade80;--feedback-wrong:#f87171;
+  }
+  [data-theme="light"]{
+    --bg:#f8fafc;--bg-elev:#ffffff;--bg-header-from:#ffffff;--bg-header-to:#f1f5f9;
+    --border:#e2e8f0;--border-soft:#cbd5e1;
+    --text:#1e293b;--text-strong:#0f172a;--text-mute:#64748b;
+    --accent:#2563eb;--accent-strong:#2563eb;--accent-bg:rgba(37,99,235,.1);
+    --option-bg:#f8fafc;--option-letter-bg:#e2e8f0;--option-letter-text:#475569;
+    --gradient-1:#0284c7;--gradient-2:#4f46e5;
+    --feedback-correct:#15803d;--feedback-wrong:#b91c1c;
+  }
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;transition:background .25s,color .25s}
+  .header{background:linear-gradient(135deg,var(--bg-header-from) 0%,var(--bg-header-to) 100%);border-bottom:1px solid var(--border);padding:2rem 1rem;text-align:center;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+  .header h1{font-size:1.8rem;font-weight:700;background:linear-gradient(90deg,var(--gradient-1),var(--gradient-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .header p{color:var(--text-mute);margin-top:.3rem;font-size:.9rem}
+  .controls{display:flex;gap:.75rem;justify-content:center;margin-top:1rem;flex-wrap:wrap}
+  .controls button{padding:.5rem 1.2rem;border-radius:.5rem;border:1px solid var(--border-soft);background:var(--bg-elev);color:var(--text);cursor:pointer;font-size:.85rem;transition:all .2s}
+  .controls button:hover{border-color:var(--accent)}
+  .controls button.active{background:var(--accent-strong);border-color:var(--accent-strong);color:#fff}
+  .score-bar{display:flex;gap:1.5rem;justify-content:center;margin-top:.75rem;font-size:.85rem;color:var(--text-mute)}
+  .score-bar span{display:flex;align-items:center;gap:.3rem}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .dot.correct{background:#22c55e}.dot.wrong{background:#ef4444}.dot.pending{background:var(--border-soft)}
+  .container{max-width:800px;margin:0 auto;padding:1.5rem 1rem 4rem}
+  .question-card{background:var(--bg-elev);border:1px solid var(--border);border-radius:.75rem;padding:1.5rem;margin-bottom:1.25rem;transition:border-color .3s,background .25s}
+  .question-card.answered-correct{border-color:#22c55e40}
+  .question-card.answered-wrong{border-color:#ef444440}
+  .q-number{display:inline-block;background:var(--accent-bg);color:var(--accent);font-size:.75rem;font-weight:600;padding:.15rem .6rem;border-radius:1rem;margin-bottom:.5rem}
+  .q-text{font-size:1.05rem;font-weight:600;color:var(--text-strong);margin-bottom:1rem}
+  .options{display:flex;flex-direction:column;gap:.5rem}
+  .option{display:flex;align-items:flex-start;gap:.75rem;padding:.75rem 1rem;border-radius:.5rem;border:1px solid var(--border);cursor:pointer;transition:all .2s;background:var(--option-bg)}
+  .option:hover:not(.disabled){border-color:var(--accent);background:var(--bg-elev)}
+  .option.selected{border-color:var(--accent-strong);background:var(--accent-bg)}
+  .option.correct-answer{border-color:#22c55e;background:#22c55e15}
+  .option.wrong-answer{border-color:#ef4444;background:#ef444415}
+  .option.disabled{cursor:default}
+  .option.disabled:not(.correct-answer):not(.wrong-answer){opacity:.5}
+  .option-letter{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--option-letter-bg);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:600;color:var(--option-letter-text);transition:all .2s}
+  .option.selected .option-letter{background:var(--accent-strong);color:#fff}
+  .option.correct-answer .option-letter{background:#22c55e;color:#fff}
+  .option.wrong-answer .option-letter{background:#ef4444;color:#fff}
+  .option-text{flex:1;font-size:.9rem;padding-top:.15rem}
+  .feedback{margin-top:.75rem;padding:.5rem .75rem;border-radius:.375rem;font-size:.85rem;font-weight:500;display:none}
+  .feedback.show{display:block}
+  .feedback.correct{background:#22c55e15;color:var(--feedback-correct);border:1px solid #22c55e30}
+  .feedback.wrong{background:#ef444415;color:var(--feedback-wrong);border:1px solid #ef444430}
+  .explanation{margin-top:.5rem;padding:.65rem .8rem;border-radius:.375rem;font-size:.85rem;line-height:1.5;background:var(--accent-bg);border-left:3px solid var(--accent);color:var(--text);display:none}
+  .explanation.show{display:block}
+  .explanation strong{color:var(--accent);font-weight:600;margin-right:.35rem}
+  @media(max-width:600px){.header h1{font-size:1.4rem}.q-text{font-size:.95rem}.option-text{font-size:.85rem}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Programaci&oacute;n 2 &mdash; Primera Parte</h1>
+  <p>AyED II &bull; UADE 2026-1C</p>
+  <div class="controls">
+    <button id="btn-theme" onclick="toggleTheme()" type="button">Modo claro</button>
+    <button id="btn-reveal" onclick="toggleRevealAll()">Mostrar todas las respuestas</button>
+    <button id="btn-reset" onclick="resetAll()">Reiniciar</button>
+  </div>
+  <div class="score-bar">
+    <span><span class="dot correct"></span> Correctas: <strong id="score-correct">0</strong></span>
+    <span><span class="dot wrong"></span> Incorrectas: <strong id="score-wrong">0</strong></span>
+    <span><span class="dot pending"></span> Pendientes: <strong id="score-pending">0</strong></span>
+  </div>
+</div>
+<div class="container" id="quiz-container"></div>
+
+<script>
+const questions = [
+  {q:"¿O(n²) indica?", opts:["Crecimiento lineal","Crecimiento cuadrático","Tiempo constante","Logarítmico"], ans:1,
+   exp:"El exponente 2 indica que el tiempo crece proporcional al cuadrado de n: típico de bucles anidados sobre la misma colección."},
+  {q:"¿Qué describe O(n)?", opts:["Crecimiento exponencial","Tiempo constante","Crecimiento lineal","Crecimiento logarítmico"], ans:2,
+   exp:"En O(n) el trabajo escala uno a uno con el tamaño de la entrada: duplicar n duplica el tiempo."},
+  {q:"¿Qué mide la notación O (big O)?", opts:["Tiempo exacto","Crecimiento asintótico","Facilidad de código","Memoria precisa"], ans:1,
+   exp:"Big O describe cómo escala el costo cuando n tiende a infinito, no un tiempo absoluto medido en segundos."},
+  {q:"¿Qué indica O(g(n))?", opts:["Memoria exacta","Tiempo preciso","Cota superior","Código simple"], ans:2,
+   exp:"O(g(n)) es una cota superior asintótica: para n suficientemente grande, el costo nunca excede un múltiplo de g(n)."},
+  {q:"¿Qué es T(n)?", opts:["Tiempo de ejecución","Constante","Número variable","Tiempo de desarrollo"], ans:0,
+   exp:"T(n) es la función que modela el tiempo de ejecución en función del tamaño n de la entrada."},
+  {q:"¿Qué indica la notación big O?", opts:["Memoria usada","Peor caso","Tiempo exacto","Tasa de interés"], ans:1,
+   exp:"Big O se usa como cota del peor caso, garantizando un techo para el tiempo de ejecución."},
+  {q:"¿Qué ignora la notación big O?", opts:["Constantes","Tamaño de entrada","Peor caso","Cota superior"], ans:0,
+   exp:"El análisis asintótico descarta constantes multiplicativas y términos de menor orden porque no afectan la tasa de crecimiento."},
+  {q:"¿Cuál es la meta más objetiva de un buen algoritmo?", opts:["Eficiencia de tiempo","Tiempo exacto","Datos pequeños","Código muy complejo"], ans:0,
+   exp:"La eficiencia temporal es un criterio medible y comparable; los demás son subjetivos o dependen del contexto."},
+  {q:"¿Qué es un TAD?", opts:["Transferencia de datos","Tipo abstracto de datos","Transporte de información","Tipo de datos de un lenguaje"], ans:1,
+   exp:"TAD = Tipo Abstracto de Datos: define qué operaciones ofrece una estructura, con independencia de cómo se implemente."},
+  {q:"¿Qué es un invariante de representación?", opts:["Significa que los datos pueden estar en cualquier estado sin control.","Es una propiedad o condición lógica que debe cumplirse siempre para que los datos internos de un objeto se consideren válidos.","Es el estado erróneo de un objeto.","Se cumple siempre que los datos no sean nulos."], ans:1,
+   exp:"Es la condición lógica que los datos internos deben cumplir siempre para que el objeto se considere válido; toda operación pública debe preservarla."},
+  {q:"¿Cómo se hace el conteo de instrucciones?", opts:["Solo las operaciones que involucran números.","Las instrucciones dentro de un ciclo.","Cualquier instrucción que se ejecute en tiempo constante, como una asignación o una comparación simple.","El tiempo total en milisegundos que tarda el procesador en completar el programa."], ans:2,
+   exp:"Se cuentan las operaciones elementales de tiempo constante (asignaciones, comparaciones, aritmética simple), no el tiempo real de CPU."},
+  {q:"¿Qué principio de acceso define al TAD Pila?", opts:["Primero en entrar, primero en salir","Último en entrar, primero en salir","Acceso aleatorio a los elementos","Acceso basado en un índice numérico"], ans:1,
+   exp:"La pila es LIFO (Last In, First Out): el último elemento apilado es el primero en salir."},
+  {q:"¿Qué operación del TAD Lista obtiene un elemento por su lugar?", opts:["Insertar","Eliminar","Obtener","Reemplazar"], ans:2,
+   exp:"obtener(i) devuelve el elemento ubicado en la posición i de la lista, sin modificarla."},
+  {q:"¿Qué TAD sigue el principio FIFO?", opts:["Pila","Cola","Lista","Tupla"], ans:1,
+   exp:"La cola implementa FIFO: los elementos se atienden en el mismo orden en que llegaron."},
+  {q:"¿Qué TAD permite agregar al final y quitar del inicio?", opts:["Pila","Lista","Cola","Tupla"], ans:2,
+   exp:"En la cola se encola al final (rear) y se desencola desde el inicio (front), de ahí su comportamiento FIFO."},
+  {q:"¿Qué operación agrega un elemento al tope de una pila?", opts:["Desencolar","Encolar","Apilar","Insertar"], ans:2,
+   exp:"Apilar (push) coloca un elemento en el tope, que es el único punto de acceso de la pila."},
+  {q:"¿Qué operación elimina un elemento del inicio de una Cola?", opts:["Apilar","Insertar","Desencolar","Eliminar"], ans:2,
+   exp:"Desencolar (dequeue) retira el elemento del frente de la cola y lo devuelve."},
+  {q:"¿Qué TAD accede al último elemento añadido primero?", opts:["Lista","Pila","Cola","Ninguno"], ans:1,
+   exp:"Por su política LIFO, la pila siempre accede primero al elemento más recientemente apilado."},
+  {q:"¿Qué TAD tiene la operación \"buscar(elemento)\"?", opts:["Pila","Cola","Lista","Tupla"], ans:2,
+   exp:"La lista permite recorrer sus posiciones; buscar(elemento) retorna la posición o referencia si existe."},
+  {q:"¿Qué operación muestra el primer elemento de una Cola?", opts:["Encolar","Desencolar","Frente","Apilar"], ans:2,
+   exp:"frente() (peek) devuelve el elemento del inicio de la cola sin retirarlo."},
+  {q:"¿Qué estructura sigue la política de acceso FIFO?", opts:["Ninguna","Pila","Lista","Cola"], ans:3,
+   exp:"FIFO (first in, first out) es la política característica de la cola."},
+  {q:"¿Qué TAD permite claves únicas?", opts:["Lista","Diccionario","Deque","Pila"], ans:1,
+   exp:"El diccionario asocia cada clave con un único valor: no admite claves repetidas."},
+  {q:"¿Qué estructura NO garantiza claves únicas?", opts:["Diccionario","Mapa","Tabla de asociación","Deque"], ans:3,
+   exp:"Deque es una cola de doble extremo: es una estructura secuencial de elementos, no maneja claves."},
+  {q:"¿Qué operación del Diccionario devuelve un conjunto de claves?", opts:["obtener(k)","valores()","tam()","claves()"], ans:3,
+   exp:"claves() retorna el conjunto con todas las claves actualmente almacenadas."},
+  {q:"¿Qué estructura garantiza la unicidad de las claves?", opts:["Lista","Deque","Pila","Diccionario"], ans:3,
+   exp:"La unicidad de claves es parte del contrato del diccionario: cada clave aparece una sola vez."},
+  {q:"¿Qué sucede al insertar una clave ya existente en un Diccionario?", opts:["Se ignora la nueva inserción.","Se agregan ambas claves.","Se crea una nueva entrada duplicada.","Se actualiza el valor asociado a la clave."], ans:3,
+   exp:"Como la clave debe ser única, insertar una ya existente sobrescribe el valor asociado a esa clave."},
+  {q:"¿Cuál es la principal diferencia entre TreeSet y HashSet en cuanto a su estructura interna y el orden de sus elementos?",
+   opts:["HashSet almacena los elementos en un árbol rojo-negro garantizando un orden ascendente, mientras que TreeSet utiliza una tabla hash para permitir acceso en tiempo constante O(1).",
+         "TreeSet permite elementos duplicados si se define un comparador externo, mientras que HashSet utiliza los métodos equals() y hashCode() para prohibir estrictamente cualquier duplicación.",
+         "HashSet basa su funcionamiento en una tabla hash y no garantiza ningún orden específico, mientras que TreeSet utiliza una estructura de árbol que mantiene los elementos ordenados según su orden natural o un Comparator.",
+         "TreeSet es más eficiente en operaciones de inserción y búsqueda O(1) que HashSet, el cual requiere un tiempo logarítmico O(log n) debido a la reorganización constante de sus índices."], ans:2,
+   exp:"HashSet usa tabla hash (O(1) promedio, sin orden); TreeSet usa un árbol balanceado rojo-negro (O(log n), mantiene orden natural o por Comparator)."},
+  {q:"Al utilizar LinkedList como implementación de la interfaz Deque, ¿qué característica define el comportamiento de sus métodos y su eficiencia en los extremos?",
+   opts:["Los métodos como addFirst() y addLast() tienen una complejidad de O(n) porque la lista debe ser recorrida completamente para encontrar el nodo del extremo opuesto.",
+         "LinkedList implementa Deque permitiendo inserciones y eliminaciones en ambos extremos en tiempo constante O(1), gracias a que mantiene referencias internas al primer y último nodo.",
+         "A diferencia de ArrayDeque, la implementación LinkedList no permite el uso de punteros nulos (null) cuando se utiliza bajo el contrato de la interfaz Deque.",
+         "La implementación con LinkedList es preferible para Deques que requieren acceso aleatorio frecuente mediante índices, superando en rendimiento a la implementación basada en arreglos."], ans:1,
+   exp:"LinkedList mantiene referencias al primer y último nodo, así que addFirst/addLast y las remociones en cualquiera de los extremos son O(1)."},
+  {q:"¿Qué caracteriza fundamentalmente a una \"implementación dinámica\" de un Tipo Abstracto de Datos (TAD)?",
+   opts:["El uso exclusivo de tipos de datos primitivos que no pueden cambiar su valor durante la ejecución del programa para garantizar la seguridad del Invariante.",
+         "La utilización de estructuras de datos que reservan una cantidad fija de memoria en tiempo de compilación, como los arreglos de tamaño constante.",
+         "El uso de punteros o referencias para enlazar nodos de memoria que se solicitan al sistema operativo en tiempo de ejecución, permitiendo que la estructura crezca o se encoja según la necesidad.",
+         "Una técnica de programación donde el Invariante de Representación se modifica automáticamente cada vez que el usuario invoca un método público."], ans:2,
+   exp:"Una implementación dinámica enlaza nodos mediante referencias y pide memoria en tiempo de ejecución, por lo que la estructura crece o se encoge según la demanda."},
+  {q:"¿Cuál es una de las principales restricciones o características de una \"implementación estática\" de un Tipo Abstracto de Datos (TAD)?",
+   opts:["Requiere el uso de punteros y referencias dinámicas para poder localizar los elementos dentro de la memoria principal durante la ejecución.",
+         "El espacio de memoria se reserva de forma contigua y fija, generalmente mediante un arreglo, lo que puede derivar en un desperdicio de memoria o en un desbordamiento si se supera la capacidad inicial.",
+         "Es la única forma de implementar un TAD que permite garantizar que el Invariante de Representación se mantenga constante en todo momento.",
+         "Permite que la estructura de datos crezca indefinidamente sin necesidad de definir un tamaño máximo, adaptándose automáticamente al volumen de datos de entrada."], ans:1,
+   exp:"La implementación estática usa un arreglo de tamaño fijo: el acceso por índice es rápido, pero al no poder redimensionarse puede desperdiciar memoria o desbordarse."},
+  {q:"¿Cuál es la diferencia fundamental entre un Tipo Abstracto de Datos (TAD) y una interfaz en Java?",
+   opts:["Un TAD es un modelo matemático teórico que define qué hace una estructura sin importar el lenguaje, mientras que una interfaz es un recurso de programación que define un contrato de métodos en Java.",
+         "La interfaz de Java incluye la implementación detallada de los métodos y el Invariante de Representación, mientras que el TAD solo se usa para documentar errores.",
+         "Los TAD solo pueden representarse mediante clases concretas, mientras que las interfaces son únicamente para definir constantes y variables globales del sistema.",
+         "Un TAD requiere obligatoriamente una implementación estática, mientras que una interfaz de Java exige siempre una implementación dinámica basada en nodos."], ans:0,
+   exp:"El TAD es un modelo abstracto e independiente del lenguaje (el qué); la interfaz Java es el contrato concreto de métodos que las clases implementan."}
+];
+
+const letters = "ABCDEFGH";
+let revealAll = false;
+let state = questions.map(() => ({answered:false, selected:null, correct:false}));
+
+function render() {
+  const container = document.getElementById("quiz-container");
+  container.innerHTML = "";
+  questions.forEach((q, qi) => {
+    const s = state[qi];
+    const exposed = s.answered || revealAll;
+    const card = document.createElement("div");
+    card.className = "question-card" + (s.answered ? (s.correct ? " answered-correct" : " answered-wrong") : "");
+
+    let html = `<span class="q-number">Pregunta ${qi+1} / ${questions.length}</span>`;
+    html += `<div class="q-text">${q.q}</div><div class="options">`;
+
+    q.opts.forEach((opt, oi) => {
+      let cls = "option";
+      if (exposed) {
+        cls += " disabled";
+        if (oi === q.ans) cls += " correct-answer";
+        else if (s.answered && s.selected === oi && !s.correct) cls += " wrong-answer";
+      } else if (s.selected === oi) {
+        cls += " selected";
+      }
+      html += `<div class="${cls}" data-q="${qi}" data-o="${oi}" onclick="pick(${qi},${oi})">`;
+      html += `<span class="option-letter">${letters[oi]}</span>`;
+      html += `<span class="option-text">${opt}</span></div>`;
+    });
+
+    html += "</div>";
+
+    if (s.answered) {
+      const fbClass = s.correct ? "correct" : "wrong";
+      const fbText = s.correct ? "¡Correcto!" : `Incorrecto — la respuesta correcta es ${letters[q.ans]}.`;
+      html += `<div class="feedback show ${fbClass}">${fbText}</div>`;
+    }
+
+    if (exposed && q.exp) {
+      html += `<div class="explanation show"><strong>Por qué:</strong>${q.exp}</div>`;
+    }
+
+    card.innerHTML = html;
+    container.appendChild(card);
+  });
+  updateScore();
+}
+
+function pick(qi, oi) {
+  if (state[qi].answered || revealAll) return;
+  state[qi].answered = true;
+  state[qi].selected = oi;
+  state[qi].correct = (oi === questions[qi].ans);
+  render();
+}
+
+function toggleRevealAll() {
+  revealAll = !revealAll;
+  document.getElementById("btn-reveal").textContent = revealAll ? "Ocultar respuestas" : "Mostrar todas las respuestas";
+  document.getElementById("btn-reveal").classList.toggle("active", revealAll);
+  render();
+}
+
+function resetAll() {
+  revealAll = false;
+  state = questions.map(() => ({answered:false, selected:null, correct:false}));
+  document.getElementById("btn-reveal").textContent = "Mostrar todas las respuestas";
+  document.getElementById("btn-reveal").classList.remove("active");
+  render();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function updateScore() {
+  const correct = state.filter(s => s.correct).length;
+  const wrong = state.filter(s => s.answered && !s.correct).length;
+  const pending = questions.length - correct - wrong;
+  document.getElementById("score-correct").textContent = correct;
+  document.getElementById("score-wrong").textContent = wrong;
+  document.getElementById("score-pending").textContent = pending;
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  const btn = document.getElementById("btn-theme");
+  if (btn) btn.textContent = theme === "dark" ? "Modo claro" : "Modo oscuro";
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme") || "dark";
+  const next = current === "dark" ? "light" : "dark";
+  applyTheme(next);
+  try { localStorage.setItem("quiz-theme", next); } catch (_) {}
+}
+
+(function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem("quiz-theme"); } catch (_) {}
+  const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+  applyTheme(saved || (prefersLight ? "light" : "dark"));
+})();
+
+render();
+</script>
+</body>
+</html>
