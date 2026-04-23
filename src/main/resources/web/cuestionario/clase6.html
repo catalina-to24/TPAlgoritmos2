@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 6 — TADs del dominio, archivos y JSON · AyED II</title>
+<link rel="stylesheet" href="/cuestionario/assets/estudio.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/cuestionario">
+    <span class="brand-icon">AyED</span>
+    <span>AyED II <span class="brand-sub">· UADE 3.4.229 · 2026-1C</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/cuestionario">🏠 Inicio</a>
+    <a class="nav-link" href="/cuestionario/quiz">📝 Quiz</a>
+    <a class="nav-link" href="/cuestionario/resumenes">📚 Resúmenes</a>
+    <a class="nav-link" href="/cuestionario/exposicion">🎤 Exposición</a>
+    <a class="nav-link" href="/">🚚 TPO</a>
+    <button id="theme-toggle" class="theme-toggle" type="button">Modo claro</button>
+  </div>
+</nav>
+
+<div class="container-narrow">
+
+  <header class="summary-header">
+    <span class="eyebrow">Clase 6 · 17/04/2026</span>
+    <h1>TADs específicos del dominio, archivos y JSON</h1>
+    <p class="lead">Última clase antes del parcial: cómo modelar entidades de un problema concreto como TDAs (Cliente, Producto, etc.) y cómo persistir/leer datos usando archivos y formato JSON con Gson.</p>
+    <div class="tags">
+      <span class="badge">TAD del dominio</span>
+      <span class="badge">Archivos</span>
+      <span class="badge">JSON</span>
+      <span class="badge">Gson</span>
+    </div>
+  </header>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">1</span> TADs específicos del dominio</h2>
+    <p>A diferencia de los TDAs <em>generales</em> (lista, pila, cola, diccionario), los <strong>TDAs del dominio</strong> modelan entidades concretas de un problema específico: cliente, producto, paquete, depósito, empleado, etc.</p>
+
+    <h3>Estructura común</h3>
+    <ol>
+      <li><strong>Datos</strong>: atributos esenciales de la entidad.</li>
+      <li><strong>Operaciones</strong>: acciones que tienen sentido sobre la entidad.</li>
+      <li><strong>Invariante de representación</strong>: restricciones para que el estado sea válido.</li>
+    </ol>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">2</span> Ejemplo 1: TAD Cliente</h2>
+    <table>
+      <thead><tr><th>Parte</th><th>Contenido</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Datos</strong></td>
+          <td>Nombre, número de identificación (DNI/ID), historial de compras o reservas.</td>
+        </tr>
+        <tr>
+          <td><strong>Operaciones</strong></td>
+          <td>Crear un cliente con nombre e ID; agregar una compra; consultar historial.</td>
+        </tr>
+        <tr>
+          <td><strong>Invariante</strong></td>
+          <td>El número de identificación no debe ser nulo.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">3</span> Ejemplo 2: TAD Producto</h2>
+    <table>
+      <thead><tr><th>Parte</th><th>Contenido</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Datos</strong></td>
+          <td>Código, nombre, precio, stock disponible.</td>
+        </tr>
+        <tr>
+          <td><strong>Operaciones</strong></td>
+          <td>Registrar nuevo producto; modificar stock; calcular precio con impuestos.</td>
+        </tr>
+        <tr>
+          <td><strong>Invariante</strong></td>
+          <td>El precio es positivo. El stock no puede ser negativo.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">4</span> Ejercicio típico: TecnoShop</h2>
+    <p>Sistema que registra clientes y su historial de compras. Objetivo: identificar los TDAs necesarios.</p>
+    <ul>
+      <li><strong>Cliente</strong> — ID único, nombre, historial de compras.</li>
+      <li><strong>Compra</strong> — producto adquirido, fecha.</li>
+      <li>Un cliente tiene una <strong>lista</strong> de compras.</li>
+      <li>El sistema usa un <strong>diccionario</strong> (clave = ID del cliente, valor = Cliente) para ubicarlos rápido.</li>
+    </ul>
+    <div class="callout">
+      <strong>💡 Patrón a reconocer</strong>
+      Los TDAs del dominio <em>usan</em> los TDAs generales como piezas de lego: un <code>Cliente</code> contiene una <code>Lista</code> de <code>Compra</code>. Saber combinar TDAs es la esencia del parcial.
+    </div>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">5</span> Manejo de archivos en Java</h2>
+    <h3>Lectura línea por línea</h3>
+    <pre><code>try {
+    FileReader reader = new FileReader("texto.txt");
+    BufferedReader bufferedReader = new BufferedReader(reader);
+    String line;
+    while ((line = bufferedReader.readLine()) != null) {
+        System.out.println(line);
+    }
+    reader.close();
+} catch (IOException e) {
+    e.printStackTrace();
+}</code></pre>
+
+    <h3>Escritura (append)</h3>
+    <pre><code>try {
+    FileWriter fileWriter = new FileWriter("texto.txt", true); // true = append
+    fileWriter.write("\n mas texto");
+    fileWriter.close();
+} catch (Exception e) {
+    e.printStackTrace();
+}</code></pre>
+
+    <div class="callout warning">
+      <strong>⚠ Siempre en try/catch</strong>
+      Las operaciones de archivo pueden lanzar <code>IOException</code>. Si no las envolvés en try/catch el código <em>no compila</em>.
+    </div>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">6</span> Formato JSON</h2>
+    <p><strong>JSON</strong> (JavaScript Object Notation) es un formato ligero de intercambio de datos. Es <em>el</em> estándar de facto en la web.</p>
+    <ul>
+      <li>Objeto: pares <code>clave: valor</code> entre llaves <code>{}</code>.</li>
+      <li>Array: lista de valores entre corchetes <code>[]</code>.</li>
+      <li>Valores válidos: string, número, boolean, null, objeto, array.</li>
+      <li>Claves <strong>siempre son strings</strong>.</li>
+    </ul>
+    <pre><code>{
+  "nombre": "Juan Pérez",
+  "edad": 30,
+  "ciudad": "Ejemploville",
+  "casado": false,
+  "intereses": ["programación", "viajes", "lectura"]
+}</code></pre>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">7</span> Librería Gson</h2>
+    <p>Gson (Google) convierte objetos Java ↔ JSON con dos llamadas. Se descarga como <code>gson-2.8.2.jar</code> y se agrega a <code>libs/</code>.</p>
+
+    <h3>De JSON a objeto</h3>
+    <pre><code>Gson gson = new Gson();
+try {
+    FileReader reader = new FileReader("datosjson.txt");
+    Sistema sistema = gson.fromJson(reader, Sistema.class);
+    System.out.println(sistema);
+} catch (Exception e) {
+    e.printStackTrace();
+}</code></pre>
+
+    <h3>De objeto a JSON y escribirlo</h3>
+    <pre><code>Gson gson = new Gson();
+try {
+    Resultado resultado = new Resultado("Cantidad de ventas " + sistema.cantidadVentas());
+    String json = gson.toJson(resultado);
+    FileWriter fileWriter = new FileWriter("resjson.txt");
+    fileWriter.write(json);
+    fileWriter.close();
+} catch (Exception e) {
+    e.printStackTrace();
+}</code></pre>
+
+    <div class="callout">
+      <strong>💡 Cómo funciona</strong>
+      <code>fromJson(reader, Clase.class)</code> usa reflexión para instanciar la clase y asignar cada campo desde el JSON. Los nombres de campo tienen que coincidir (o anotarse con <code>@SerializedName</code>).
+    </div>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">8</span> Puntos clave para el examen</h2>
+    <ol>
+      <li>Un <strong>TAD del dominio</strong> tiene: datos, operaciones, invariantes. Saber enunciar los tres.</li>
+      <li>Los TDAs del dominio <strong>combinan</strong> los generales: un Cliente puede tener una Lista de Compras.</li>
+      <li>Lectura de archivo: <code>FileReader</code> + <code>BufferedReader</code> + <code>readLine()</code> en loop.</li>
+      <li>Escritura de archivo: <code>FileWriter</code> con <code>true</code> para modo append.</li>
+      <li>JSON: claves strings entre comillas, objetos con <code>{}</code>, arrays con <code>[]</code>.</li>
+      <li>Gson: <code>fromJson(reader, Clase.class)</code> / <code>toJson(objeto)</code>.</li>
+      <li>Todas las operaciones de IO van dentro de <code>try/catch</code>.</li>
+    </ol>
+  </section>
+
+  <div class="tpo-link">
+    <strong>📂 En el TPO:</strong> <code>Paquete.java</code>, <code>Deposito.java</code>, <code>Ruta.java</code> e <code>Inventario.java</code> son TDAs del dominio. El cargador (<code>InventarioLoader.java</code>) y el parser casero (<code>SimpleJsonParser.java</code>) hacen lo que haría Gson, pero implementados a mano para cumplir el requisito de "sin dependencias externas". Si tu equipo usó Gson, el flujo es idéntico.
+  </div>
+
+  <nav class="prev-next">
+    <a class="prev" href="/cuestionario/clase/5">
+      <span class="nav-label">← Anterior</span>
+      <span class="nav-title">Clase 5 · Deque y Diccionario</span>
+    </a>
+    <a class="next" href="/cuestionario/quiz">
+      <span class="nav-label">Evaluar →</span>
+      <span class="nav-title">Quiz interactivo</span>
+    </a>
+  </nav>
+
+</div>
+
+<script src="/cuestionario/assets/nav.js"></script>
+</body>
+</html>

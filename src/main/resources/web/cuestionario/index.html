@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Material de estudio · AyED II · UADE 2026</title>
+<link rel="stylesheet" href="/cuestionario/assets/estudio.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/cuestionario">
+    <span class="brand-icon">AyED</span>
+    <span>AyED II <span class="brand-sub">· UADE 3.4.229 · 2026-1C</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/cuestionario">🏠 Inicio</a>
+    <a class="nav-link" href="/cuestionario/quiz">📝 Quiz</a>
+    <a class="nav-link" href="/cuestionario/resumenes">📚 Resúmenes</a>
+    <a class="nav-link" href="/cuestionario/exposicion">🎤 Exposición</a>
+    <a class="nav-link" href="/">🚚 TPO</a>
+    <button id="theme-toggle" class="theme-toggle" type="button">Modo claro</button>
+  </div>
+</nav>
+
+<div class="container">
+  <h1 class="page-title">Material de estudio</h1>
+  <p class="page-subtitle">
+    Algoritmos y Estructuras de Datos II · Viernes noche · Prof. Adrian Caceres ·
+    Primer parcial 24/04/2026 · Segundo parcial 26/06/2026
+  </p>
+
+  <div class="hub-grid">
+    <a class="hub-card" href="/cuestionario/quiz">
+      <div class="hub-card-icon">📝</div>
+      <div class="hub-card-title">Quiz interactivo</div>
+      <div class="hub-card-desc">
+        Preguntas de opción múltiple ordenadas por clase, con explicación tras cada respuesta.
+        El progreso se guarda en el navegador.
+      </div>
+      <div class="hub-card-badges">
+        <span class="badge">~60 preguntas</span>
+        <span class="badge">6 clases</span>
+        <span class="badge">Con explicación</span>
+      </div>
+      <span class="hub-card-arrow">Empezar →</span>
+    </a>
+
+    <a class="hub-card" href="/cuestionario/resumenes">
+      <div class="hub-card-icon">📚</div>
+      <div class="hub-card-title">Resúmenes por clase</div>
+      <div class="hub-card-desc">
+        Un resumen por cada clase dictada. Conceptos, complejidades, invariantes y cómo cae
+        cada tema en el TPO de logística.
+      </div>
+      <div class="hub-card-badges">
+        <span class="badge">6 resúmenes</span>
+        <span class="badge">PDF original</span>
+        <span class="badge">Con ejemplos</span>
+      </div>
+      <span class="hub-card-arrow">Ver galería →</span>
+    </a>
+
+    <a class="hub-card" href="/cuestionario/exposicion">
+      <div class="hub-card-icon">🎤</div>
+      <div class="hub-card-title">Exposición grupal</div>
+      <div class="hub-card-desc">
+        Material para defender el TPO: arquitectura (1 pto) y justificación de los TDAs (2 ptos).
+        Dos guiones de 6 partes cada uno, con talking points, código de referencia y
+        preguntas probables del jurado.
+      </div>
+      <div class="hub-card-badges">
+        <span class="badge">2 exposiciones</span>
+        <span class="badge">6 roles c/u</span>
+        <span class="badge">Con Q&A</span>
+      </div>
+      <span class="hub-card-arrow">Preparar defensa →</span>
+    </a>
+
+    <a class="hub-card" href="/">
+      <div class="hub-card-icon">🚚</div>
+      <div class="hub-card-title">Logi-UADE (TPO)</div>
+      <div class="hub-card-desc">
+        La aplicación del Trabajo Práctico Obligatorio. Probá los TDAs desde el navegador:
+        pila, cola de prioridad, ABB, grafo con Dijkstra.
+      </div>
+      <div class="hub-card-badges">
+        <span class="badge">Aplicación</span>
+        <span class="badge">4 TDAs</span>
+      </div>
+      <span class="hub-card-arrow">Abrir →</span>
+    </a>
+  </div>
+
+  <div class="info-box">
+    <h3>Temario por clase</h3>
+    <ol>
+      <li><strong>Clase 1 · 13/03</strong> — Repaso de Java: sintaxis, funciones, condicionales, bucles, vectores, matrices.</li>
+      <li><strong>Clase 2 · 20/03</strong> — Complejidad algorítmica: T(n), notación Big O, demostración formal, tasas de crecimiento.</li>
+      <li><strong>Clase 3 · 27/03</strong> — TDA, invariante de representación, POO, Par Ordenado, Tupla, Conjunto.</li>
+      <li><strong>Clase 4 · 10/04</strong> — TAD Lista, TAD Pila (LIFO), TAD Cola (FIFO).</li>
+      <li><strong>Clase 5 · 17/04</strong> — TAD Deque (doble terminado) y TAD Diccionario.</li>
+      <li><strong>Clase 6 · 17/04</strong> — TADs específicos del dominio, manejo de archivos, JSON y Gson.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>Cómo se evalúa el parcial</h2>
+    <p>El parcial consiste en modificar el TPO en vivo. Desglose de la nota:</p>
+    <ul style="margin-left:1.2rem;margin-top:.5rem;line-height:1.8">
+      <li><strong>Exposición grupal del TP</strong> — 1 punto</li>
+      <li><strong>Preguntas orales de teoría</strong> — 2 puntos</li>
+      <li><strong>Vibe coding</strong> (asistido con IA, 10 min) — 2 puntos</li>
+      <li><strong>Live coding</strong> (sin IA, 10 min) — 4 puntos</li>
+      <li><strong>Publicar en la rama de GitHub</strong> — 1 punto</li>
+    </ul>
+    <p style="margin-top:.7rem"><strong style="color:var(--accent)">Se aprueba con 4 puntos.</strong> Duración: 1 hora.</p>
+  </div>
+</div>
+
+<script src="/cuestionario/assets/nav.js"></script>
+</body>
+</html>

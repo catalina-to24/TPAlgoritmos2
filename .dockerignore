@@ -1,0 +1,14 @@
+out/
+out-test/
+tmp/
+lib/
+.git/
+.gitignore
+.idea/
+.vscode/
+.claude/
+.playwright-mcp/
+*.iml
+*.class
+Consigna.pdf
+*.md

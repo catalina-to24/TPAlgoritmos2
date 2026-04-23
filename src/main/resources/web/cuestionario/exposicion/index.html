@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exposición grupal · AyED II · UADE 2026</title>
+<link rel="stylesheet" href="/cuestionario/assets/estudio.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/cuestionario">
+    <span class="brand-icon">AyED</span>
+    <span>AyED II <span class="brand-sub">· UADE 3.4.229 · 2026-1C</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/cuestionario">🏠 Inicio</a>
+    <a class="nav-link" href="/cuestionario/quiz">📝 Quiz</a>
+    <a class="nav-link" href="/cuestionario/resumenes">📚 Resúmenes</a>
+    <a class="nav-link active" href="/cuestionario/exposicion">🎤 Exposición</a>
+    <a class="nav-link" href="/">🚚 TPO</a>
+    <button id="theme-toggle" class="theme-toggle" type="button">Modo claro</button>
+  </div>
+</nav>
+
+<div class="container">
+  <h1 class="page-title">Material de exposición grupal</h1>
+  <p class="page-subtitle">
+    Dos defensas orales de 6 personas cada una, alineadas con los criterios de la rúbrica del TPO:
+    <strong>Exposición Grupal</strong> (1 pto · arquitectura) y <strong>Defensa Teórica</strong> (2 ptos · TDAs).
+  </p>
+
+  <div class="hub-grid">
+    <a class="hub-card" href="/cuestionario/exposicion/arquitectura">
+      <div class="hub-card-icon">🏗️</div>
+      <div class="hub-card-title">Exposición de arquitectura</div>
+      <div class="hub-card-desc">
+        Seis partes que defienden la arquitectura del sistema y los conceptos aplicados:
+        capas, entidades inmutables, TDAs como núcleo, facade de servicio, presentación dual
+        (CLI + Web) y calidad. Cada parte incluye talking points, código de referencia y
+        preguntas probables.
+      </div>
+      <div class="hub-card-badges">
+        <span class="badge">6 partes · 1 por persona</span>
+        <span class="badge">~50 min + Q&A</span>
+        <span class="badge">Vale 1 pto (rúbrica)</span>
+      </div>
+      <span class="hub-card-arrow">Ver guión →</span>
+    </a>
+
+    <a class="hub-card" href="/cuestionario/exposicion/teorica">
+      <div class="hub-card-icon">🧠</div>
+      <div class="hub-card-title">Defensa teórica de los TDAs</div>
+      <div class="hub-card-desc">
+        Seis partes que justifican cada TDA desde la consigna y la teoría: complejidad,
+        pila, cola prioritaria, ABB manual, BFS por nivel y grafo con Dijkstra.
+        Cada parte incluye la cita literal del PDF, las complejidades del Javadoc
+        y las preguntas típicas del jurado.
+      </div>
+      <div class="hub-card-badges">
+        <span class="badge">6 partes · 1 por persona</span>
+        <span class="badge">~50 min + Q&A</span>
+        <span class="badge">Vale 2 ptos (rúbrica)</span>
+      </div>
+      <span class="hub-card-arrow">Ver guión →</span>
+    </a>
+  </div>
+
+  <div class="info-box">
+    <h3>Cómo usar este material</h3>
+    <ol>
+      <li>Cada integrante se queda con <strong>una parte</strong> de cada exposición (6 personas × 2 exposiciones = 12 roles; se pueden rotar).</li>
+      <li>Los <em>talking points</em> son bullets, no un guión cerrado: cada persona los adapta a su tono.</li>
+      <li>El bloque <strong>código de referencia</strong> te dice qué archivo abrir si te piden "mostrame dónde está X".</li>
+      <li>Las <strong>preguntas probables</strong> son una práctica: respondelas sin mirar antes de la defensa.</li>
+      <li>El resumen profundo de cada tema vive en los <a href="/cuestionario/resumenes">resúmenes por clase</a>; esto es la versión orientada a defender, no a estudiar.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>Distribución sugerida para 6 personas</h2>
+    <p>Mismo orden en ambas exposiciones: la persona A abre y F cierra. El tiempo total es similar (~50 min + Q&A).</p>
+    <table>
+      <thead>
+        <tr><th>Persona</th><th>Exposición de arquitectura</th><th>Defensa teórica (TDAs)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>A</strong></td><td>Dominio &amp; arquitectura general</td><td>Complejidad algorítmica</td></tr>
+        <tr><td><strong>B</strong></td><td>Modelo + Persistencia</td><td>Pila — <code>Camion</code></td></tr>
+        <tr><td><strong>C</strong></td><td>TDAs como núcleo</td><td>Cola Prioritaria — <code>CentroDistribucion</code></td></tr>
+        <tr><td><strong>D</strong></td><td>Capa de servicio</td><td>ABB — <code>ArbolDepositos</code></td></tr>
+        <tr><td><strong>E</strong></td><td>Presentación: CLI + Web + SPA</td><td>BFS / Recorrido por nivel</td></tr>
+        <tr><td><strong>F</strong></td><td>Calidad, build y cierre</td><td>Grafo + Dijkstra — <code>GrafoDepositos</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="/cuestionario/assets/nav.js"></script>
+</body>
+</html>

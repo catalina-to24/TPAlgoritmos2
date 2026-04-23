@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 5 — Deque y Diccionario · AyED II</title>
+<link rel="stylesheet" href="/cuestionario/assets/estudio.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/cuestionario">
+    <span class="brand-icon">AyED</span>
+    <span>AyED II <span class="brand-sub">· UADE 3.4.229 · 2026-1C</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/cuestionario">🏠 Inicio</a>
+    <a class="nav-link" href="/cuestionario/quiz">📝 Quiz</a>
+    <a class="nav-link" href="/cuestionario/resumenes">📚 Resúmenes</a>
+    <a class="nav-link" href="/cuestionario/exposicion">🎤 Exposición</a>
+    <a class="nav-link" href="/">🚚 TPO</a>
+    <button id="theme-toggle" class="theme-toggle" type="button">Modo claro</button>
+  </div>
+</nav>
+
+<div class="container-narrow">
+
+  <header class="summary-header">
+    <span class="eyebrow">Clase 5 · 17/04/2026</span>
+    <h1>TAD Deque y TAD Diccionario</h1>
+    <p class="lead">Dos TDAs más sofisticados: el Deque es una cola de doble terminación (puede actuar como pila o cola); el Diccionario asocia claves únicas con valores.</p>
+    <div class="tags">
+      <span class="badge">Deque</span>
+      <span class="badge">Diccionario</span>
+      <span class="badge">Clave-Valor</span>
+      <span class="badge">Hash/Tree</span>
+    </div>
+  </header>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">1</span> TAD Deque (Double-Ended Queue)</h2>
+    <p>Cola doblemente terminada: permite insertar y eliminar <strong>por ambos extremos</strong>. Puede usarse como pila (solo un extremo) o como cola (encolar atrás, desencolar adelante).</p>
+
+    <h3>Operaciones</h3>
+    <table>
+      <thead><tr><th>Operación</th><th>Qué hace</th><th>Complejidad</th></tr></thead>
+      <tbody>
+        <tr><td><code>agregarInicio(e)</code></td><td>Inserta al frente.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>agregarFinal(e)</code></td><td>Inserta al final.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>eliminarInicio()</code></td><td>Remueve y devuelve el primero.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>eliminarFinal()</code></td><td>Remueve y devuelve el último.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>verInicio()</code></td><td>Primer elemento sin eliminar.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>verFinal()</code></td><td>Último sin eliminar.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>estaVacio()</code></td><td>→ boolean.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>tamaño()</code></td><td>Cantidad de elementos.</td><td><code>O(1)</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Invariantes</h3>
+    <ol>
+      <li>El <strong>orden de los elementos se mantiene</strong> según cómo se insertaron y retiraron.</li>
+      <li>Las operaciones en <strong>ambos extremos son O(1)</strong> en implementaciones óptimas (lista doblemente enlazada o array circular).</li>
+      <li>Dependiendo de la implementación, puede prohibir <code>null</code>.</li>
+    </ol>
+
+    <h3>Implementaciones en Java</h3>
+    <ul>
+      <li><code>LinkedList&lt;E&gt;</code> — lista doblemente enlazada, implementa <code>Deque&lt;E&gt;</code>.</li>
+      <li><code>ArrayDeque&lt;E&gt;</code> — <strong>recomendada</strong>. Array redimensionable, <em>no permite <code>null</code></em>, más rápida que <code>LinkedList</code>.</li>
+    </ul>
+
+    <div class="callout">
+      <strong>💡 Usos típicos</strong>
+      Historial de navegador (atrás/adelante), BFS que requiere insertar/sacar en ambos extremos, colas con prioridades binarias (alta al frente, baja al final).
+    </div>
+
+    <h3>Ejercicio típico: prioridad simple con deque</h3>
+    <p>Tareas urgentes van al <strong>inicio</strong> (<code>agregarInicio</code>) y se atienden primero; tareas normales van al <strong>final</strong> (<code>agregarFinal</code>). Se procesa siempre con <code>eliminarInicio()</code>.</p>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">2</span> TAD Diccionario (Mapa / Tabla de asociación)</h2>
+    <p>Estructura que <strong>asocia claves con valores</strong>. Permite buscar un valor a partir de su clave en tiempo eficiente. También se llama <em>Mapa</em> o <em>Tabla de asociación</em>.</p>
+    <p>Notación formal: <code>D = { (k₁, v₁), (k₂, v₂), ..., (kₙ, vₙ) }</code>, con claves únicas.</p>
+
+    <h3>Operaciones</h3>
+    <table>
+      <thead><tr><th>Operación</th><th>Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><code>insertar(k, v)</code></td><td>Agrega el par (k, v). Si la clave ya existe, actualiza el valor.</td></tr>
+        <tr><td><code>obtener(k)</code></td><td>Devuelve el valor asociado a <code>k</code>, o <code>null</code> / error si no existe.</td></tr>
+        <tr><td><code>eliminar(k)</code></td><td>Quita la clave y su valor.</td></tr>
+        <tr><td><code>contiene(k)</code></td><td>→ true si la clave está presente.</td></tr>
+        <tr><td><code>size()</code></td><td>Total de pares.</td></tr>
+        <tr><td><code>claves()</code></td><td>Conjunto con todas las claves.</td></tr>
+        <tr><td><code>valores()</code></td><td>Lista con todos los valores.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Invariantes de representación</h3>
+    <ol>
+      <li>Las <strong>claves son únicas</strong>: no puede haber dos pares con la misma clave.</li>
+      <li>Cada clave tiene <strong>exactamente un valor</strong> asociado.</li>
+      <li>Los <strong>valores pueden repetirse</strong>; las claves no.</li>
+      <li>Puede estar vacío, pero generalmente <strong>no admite clave <code>null</code></strong>.</li>
+    </ol>
+
+    <h3>Implementaciones en Java</h3>
+    <table>
+      <thead><tr><th>Clase</th><th>Estructura interna</th><th>Orden</th><th>Complejidad típica</th></tr></thead>
+      <tbody>
+        <tr><td><code>HashMap&lt;K,V&gt;</code></td><td>Tabla hash</td><td>No ordenado</td><td><code>O(1)</code> promedio</td></tr>
+        <tr><td><code>TreeMap&lt;K,V&gt;</code></td><td>Árbol balanceado (red-black)</td><td>Por clave ascendente</td><td><code>O(log n)</code></td></tr>
+        <tr><td><code>LinkedHashMap&lt;K,V&gt;</code></td><td>Hash + lista doble</td><td>Por orden de inserción</td><td><code>O(1)</code> promedio</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warning">
+      <strong>⚠ Cuándo elegir cuál</strong>
+      <code>HashMap</code> si necesitás <em>velocidad</em> y no te importa el orden.<br>
+      <code>TreeMap</code> si necesitás recorrer las claves <em>ordenadas</em>.<br>
+      <code>LinkedHashMap</code> si querés preservar el orden de inserción (útil para caches LRU).
+    </div>
+
+    <h3>Ejercicio típico: gestión de estudiantes</h3>
+    <ul>
+      <li>Clave: <strong>legajo</strong> (entero).</li>
+      <li>Valor: <strong>Tupla</strong> con nombre, apellido y lista de calificaciones.</li>
+      <li>Operaciones: agregar estudiante, agregar nota, promedio por estudiante, listar todos.</li>
+    </ul>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">3</span> Comparación Deque vs Pila vs Cola</h2>
+    <table>
+      <thead><tr><th></th><th>Pila</th><th>Cola</th><th>Deque</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Acceso</strong></td><td>Solo cima</td><td>Solo frente/final</td><td>Ambos extremos</td></tr>
+        <tr><td><strong>Insertar al inicio</strong></td><td>—</td><td>—</td><td>✓ O(1)</td></tr>
+        <tr><td><strong>Insertar al final</strong></td><td>✓ (cima)</td><td>✓ (encolar)</td><td>✓ O(1)</td></tr>
+        <tr><td><strong>Eliminar del inicio</strong></td><td>—</td><td>✓ (desencolar)</td><td>✓ O(1)</td></tr>
+        <tr><td><strong>Eliminar del final</strong></td><td>✓ (desapilar)</td><td>—</td><td>✓ O(1)</td></tr>
+      </tbody>
+    </table>
+    <p>El Deque es la <strong>generalización</strong> de Pila y Cola: con sólo dos de sus cuatro operaciones podés simular cualquiera.</p>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">4</span> Puntos clave para el examen</h2>
+    <ol>
+      <li>Un <strong>Deque</strong> permite operar en ambos extremos. Todas las operaciones son <code>O(1)</code> en buena implementación.</li>
+      <li>Un <strong>Diccionario</strong> mapea <strong>claves únicas</strong> a valores.</li>
+      <li>Las <strong>claves no se repiten</strong>; los valores sí pueden.</li>
+      <li>En Java: <code>HashMap</code> es <code>O(1)</code> promedio pero no ordenado; <code>TreeMap</code> es <code>O(log n)</code> pero ordenado por clave.</li>
+      <li>Un <code>HashSet</code> es básicamente un <code>HashMap</code> sin valores (solo claves).</li>
+      <li>Los operadores del Deque son: <code>agregarInicio</code>, <code>agregarFinal</code>, <code>eliminarInicio</code>, <code>eliminarFinal</code>, <code>verInicio</code>, <code>verFinal</code>.</li>
+    </ol>
+  </section>
+
+  <div class="tpo-link">
+    <strong>📂 En el TPO:</strong> <code>Camion.java</code> usa <code>ArrayDeque</code> internamente porque la JDK recomienda esa clase para pilas. El TPO <em>no</em> usa diccionario explícitamente, pero los loaders (<code>SimpleJsonParser</code>) devuelven <code>LinkedHashMap</code> para preservar el orden de inserción del JSON.
+  </div>
+
+  <nav class="prev-next">
+    <a class="prev" href="/cuestionario/clase/4">
+      <span class="nav-label">← Anterior</span>
+      <span class="nav-title">Clase 4 · Lista, Pila, Cola</span>
+    </a>
+    <a class="next" href="/cuestionario/clase/6">
+      <span class="nav-label">Siguiente →</span>
+      <span class="nav-title">Clase 6 · TADs del dominio</span>
+    </a>
+  </nav>
+
+</div>
+
+<script src="/cuestionario/assets/nav.js"></script>
+</body>
+</html>

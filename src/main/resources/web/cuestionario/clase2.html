@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 2 — Complejidad algorítmica · AyED II</title>
+<link rel="stylesheet" href="/cuestionario/assets/estudio.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/cuestionario">
+    <span class="brand-icon">AyED</span>
+    <span>AyED II <span class="brand-sub">· UADE 3.4.229 · 2026-1C</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/cuestionario">🏠 Inicio</a>
+    <a class="nav-link" href="/cuestionario/quiz">📝 Quiz</a>
+    <a class="nav-link" href="/cuestionario/resumenes">📚 Resúmenes</a>
+    <a class="nav-link" href="/cuestionario/exposicion">🎤 Exposición</a>
+    <a class="nav-link" href="/">🚚 TPO</a>
+    <button id="theme-toggle" class="theme-toggle" type="button">Modo claro</button>
+  </div>
+</nav>
+
+<div class="container-narrow">
+
+  <header class="summary-header">
+    <span class="eyebrow">Clase 2 · 20/03/2026</span>
+    <h1>Complejidad algorítmica</h1>
+    <p class="lead">Cómo medir qué tan eficiente es un algoritmo sin ejecutarlo: conteo de instrucciones, notación Big O y tasas de crecimiento. Este tema pesa <strong>30% de la nota</strong> del TPO.</p>
+    <div class="tags">
+      <span class="badge">T(n)</span>
+      <span class="badge">Big O</span>
+      <span class="badge">Asintótica</span>
+      <span class="badge">Demostración formal</span>
+    </div>
+  </header>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">1</span> ¿Qué es un buen algoritmo?</h2>
+    <p>Hay criterios subjetivos (claridad, simplicidad, adecuación a los datos) y uno más objetivo: la <strong>eficiencia en tiempo de ejecución</strong>. No sirve medir en segundos porque dependen del hardware; en vez de eso contamos <em>instrucciones</em> en función del tamaño de la entrada <code>n</code>.</p>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">2</span> Tiempo de ejecución T(n)</h2>
+    <p><code>T(n)</code> es el número de instrucciones ejecutadas en un "computador idealizado" para una entrada de tamaño <code>n</code>. Conteo de ejemplo:</p>
+    <pre><code>boolean todosPares(int[] arr) {
+    boolean rta = true;                            // 1
+    for (int i = 1; i &lt; arr.length; i++) {         // 1 + 2(n+1) + n = 3 + 3n
+        rta = rta &amp;&amp; (arr[i] % 2) == 0;           // 5n
+    }
+    return rta;                                    // 1
+}</code></pre>
+    <p class="lead" style="margin-top:.5rem">
+      <strong>f(n) = 1 + 3 + 3n + 5n + 1 = 8n + 5</strong>
+    </p>
+    <p>El resultado exacto depende de cómo contás (cada operación cuesta 1, cada comparación cuesta 1, etc.). Lo importante es <em>el grado del polinomio</em>, no la constante.</p>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">3</span> Complejidad asintótica</h2>
+    <p>Interesa cómo crece el costo cuando <code>n</code> tiende a infinito: se descartan constantes multiplicativas y términos de menor orden. Es una <strong>cota</strong> (en general superior), no un tiempo exacto.</p>
+    <div class="callout">
+      <strong>¿Por qué asintótica?</strong>
+      Para <code>n</code> chico cualquier algoritmo parece rápido. La diferencia entre <code>O(n)</code> y <code>O(n²)</code> se nota con entradas grandes, que son las que realmente estresan el sistema.
+    </div>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">4</span> Notación O (Big O)</h2>
+    <p>Se dice que <code>f(n) ∈ O(g(n))</code> si existen constantes <code>c &gt; 0</code> y <code>n₀ ≥ 0</code> tales que:</p>
+    <p style="text-align:center;font-size:1.1rem;margin:.8rem 0">
+      <code>f(n) ≤ c · g(n)</code> para todo <code>n ≥ n₀</code>
+    </p>
+    <p>Leído: <em>"el costo de f(n) nunca supera a un múltiplo de g(n) para n suficientemente grande"</em>.</p>
+
+    <h3>Demostración formal que f(n) = 8n + 5 es O(n)</h3>
+    <ol>
+      <li><strong>Elegir g(n):</strong> queremos probar que <code>f(n) ∈ O(n)</code>, así que <code>g(n) = n</code>.</li>
+      <li><strong>Planteo:</strong> buscamos <code>c</code> y <code>n₀</code> tales que <code>8n + 5 ≤ c·n</code>.</li>
+      <li><strong>Dividimos por n</strong> (con <code>n &gt; 0</code>): <code>8 + 5/n ≤ c</code>.</li>
+      <li><strong>Elegimos c = 9.</strong> Entonces <code>8 + 5/n ≤ 9</code> ⇒ <code>5/n ≤ 1</code> ⇒ <code>n ≥ 5</code>.</li>
+      <li><strong>Tomamos n₀ = 5.</strong> Para todo <code>n ≥ 5</code> se cumple. <strong>QED.</strong></li>
+    </ol>
+    <p>Conclusión: <code>f(n) = 8n + 5</code> es <code>O(n)</code> con <code>c = 9</code> y <code>n₀ = 5</code>.</p>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">5</span> Tasas de crecimiento más comunes</h2>
+    <table>
+      <thead><tr><th>Familia</th><th>Forma</th><th>Orden</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td>Constante</td><td><code>f(x) = k</code></td><td><code>O(1)</code></td><td>Apilar / desapilar</td></tr>
+        <tr><td>Logarítmica</td><td><code>a·log(x) + b</code></td><td><code>O(log n)</code></td><td>Buscar en ABB balanceado</td></tr>
+        <tr><td>Lineal</td><td><code>a·x + b</code></td><td><code>O(n)</code></td><td>Recorrer un array</td></tr>
+        <tr><td>Loglineal</td><td><code>n · log(n)</code></td><td><code>O(n log n)</code></td><td>Merge sort, heapsort</td></tr>
+        <tr><td>Cuadrática</td><td><code>a·x² + b·x + c</code></td><td><code>O(n²)</code></td><td>Dos <code>for</code> anidados</td></tr>
+        <tr><td>Cúbica</td><td><code>a·x³ + ...</code></td><td><code>O(n³)</code></td><td>Tres <code>for</code> anidados</td></tr>
+        <tr><td>Exponencial</td><td><code>a·b^x</code></td><td><code>O(b^n)</code></td><td>Fuerza bruta combinatoria</td></tr>
+        <tr><td>Factorial</td><td><code>a·n! + b</code></td><td><code>O(n!)</code></td><td>Permutaciones sin podar</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warning">
+      <strong>Orden de crecimiento</strong>
+      <code>O(1) &lt; O(log n) &lt; O(n) &lt; O(n log n) &lt; O(n²) &lt; O(n³) &lt; O(2ⁿ) &lt; O(n!)</code>.
+      A mayor tasa, peor escala el algoritmo.
+    </div>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">6</span> Ejercicio típico: matriz cuadrada</h2>
+    <p>Calcular el promedio de una matriz <code>n × n</code>:</p>
+    <pre><code>int[][] mat = ...;
+int suma = 0;                                              // 1
+for (int i = 0; i &lt; mat.length; i++) {                     // 3 + 3n
+    for (int j = 0; j &lt; mat[0].length; j++) {              // 3 + 3n
+        suma += mat[i][j];                                 // 2n
+    }
+}
+double promedio = (double) suma / (mat.length * mat[0].length);  // 2
+System.out.println("Promedio " + promedio);                // 2</code></pre>
+    <p><strong>f(n) = 6 + 6n + 5n²</strong></p>
+    <p>Demostración que pertenece a <code>O(n²)</code>: buscamos <code>c</code> tal que <code>6 + 6n + 5n² ≤ c·n²</code>. Dividiendo por <code>n²</code>: <code>6/n² + 6/n + 5 ≤ c</code>. Para <code>n = 1</code>: <code>6 + 6 + 5 = 17 ≤ c</code>. Tomando <code>c = 17</code> y <code>n₀ = 1</code> queda probado.</p>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">7</span> Tips rápidos para el parcial</h2>
+    <ol>
+      <li>Un <code>for</code> que recorre toda la colección es <code>O(n)</code>.</li>
+      <li>Dos <code>for</code> anidados sobre la misma colección son <code>O(n²)</code>.</li>
+      <li>Operaciones que reducen el problema a la mitad cada vez son <code>O(log n)</code>.</li>
+      <li>La <strong>constante no importa</strong>: <code>O(5n)</code> se escribe <code>O(n)</code>.</li>
+      <li>El <strong>término de menor orden no importa</strong>: <code>O(n² + n)</code> se escribe <code>O(n²)</code>.</li>
+      <li>Big O es <strong>cota superior</strong>: está pensada para acotar el peor caso.</li>
+    </ol>
+  </section>
+
+  <div class="tpo-link">
+    <strong>📂 En el TPO:</strong> cada método público de los TDAs tiene un Javadoc con <code>@implNote Complejidad: O(...) tiempo / O(...) espacio</code>. Abrí <code>Camion.java</code> o <code>ArbolDepositos.java</code> y vas a ver ese patrón.
+  </div>
+
+  <nav class="prev-next">
+    <a class="prev" href="/cuestionario/clase/1">
+      <span class="nav-label">← Anterior</span>
+      <span class="nav-title">Clase 1 · Repaso de Java</span>
+    </a>
+    <a class="next" href="/cuestionario/clase/3">
+      <span class="nav-label">Siguiente →</span>
+      <span class="nav-title">Clase 3 · TDAs básicos</span>
+    </a>
+  </nav>
+
+</div>
+
+<script src="/cuestionario/assets/nav.js"></script>
+</body>
+</html>

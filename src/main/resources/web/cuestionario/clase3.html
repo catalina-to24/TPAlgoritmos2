@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 3 — TDAs: Par Ordenado, Tupla, Conjunto · AyED II</title>
+<link rel="stylesheet" href="/cuestionario/assets/estudio.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/cuestionario">
+    <span class="brand-icon">AyED</span>
+    <span>AyED II <span class="brand-sub">· UADE 3.4.229 · 2026-1C</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/cuestionario">🏠 Inicio</a>
+    <a class="nav-link" href="/cuestionario/quiz">📝 Quiz</a>
+    <a class="nav-link" href="/cuestionario/resumenes">📚 Resúmenes</a>
+    <a class="nav-link" href="/cuestionario/exposicion">🎤 Exposición</a>
+    <a class="nav-link" href="/">🚚 TPO</a>
+    <button id="theme-toggle" class="theme-toggle" type="button">Modo claro</button>
+  </div>
+</nav>
+
+<div class="container-narrow">
+
+  <header class="summary-header">
+    <span class="eyebrow">Clase 3 · 27/03/2026</span>
+    <h1>TDAs: Par Ordenado, Tupla y Conjunto</h1>
+    <p class="lead">Primera clase fuerte del primer parcial: qué es un Tipo de Dato Abstracto, cómo se especifica, qué es un invariante de representación y las tres primeras implementaciones en Java con genéricos.</p>
+    <div class="tags">
+      <span class="badge">TDA</span>
+      <span class="badge">Invariante</span>
+      <span class="badge">Genéricos &lt;T&gt;</span>
+      <span class="badge">POO</span>
+    </div>
+  </header>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">1</span> ¿Qué es un TDA?</h2>
+    <p>Un <strong>Tipo de Dato Abstracto</strong> (TDA, en inglés <em>ADT</em>) define una estructura en términos de <em>su comportamiento y operaciones</em>, <strong>sin</strong> especificar la implementación interna. Dice <em>qué</em> hace, no <em>cómo</em> lo hace.</p>
+    <p>Ejemplos comunes:</p>
+    <ul>
+      <li><strong>Lista:</strong> <code>agregar</code>, <code>eliminar</code>, <code>obtener(i)</code> — se puede implementar con array, lista enlazada, doblemente enlazada, etc.</li>
+      <li><strong>Cola:</strong> <code>encolar</code>, <code>desencolar</code> — array circular, lista enlazada, etc.</li>
+      <li><strong>Pila:</strong> <code>apilar</code>, <code>desapilar</code> — array, lista enlazada, etc.</li>
+    </ul>
+    <div class="callout">
+      <strong>💡 Idea fundamental</strong>
+      Encapsular los detalles y ofrecer una interfaz limpia. Así podés cambiar la implementación sin romper el código que usa el TDA.
+    </div>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">2</span> Invariante de representación</h2>
+    <p>Una <strong>condición que siempre debe cumplirse</strong> para que un objeto del TDA esté en estado válido. Se chequea antes y después de cada operación.</p>
+    <p>Ejemplos:</p>
+    <ul>
+      <li><strong>Lista enlazada:</strong> el último nodo apunta a <code>null</code>; cada nodo apunta al siguiente.</li>
+      <li><strong>Cola:</strong> los elementos se agregan al final y se retiran del frente (FIFO).</li>
+      <li><strong>Fecha:</strong> día, mes y año están en rangos válidos y son coherentes.</li>
+      <li><strong>Número complejo:</strong> parte imaginaria es un real válido.</li>
+    </ul>
+    <p class="lead">El invariante de representación es lo que <strong>garantiza la integridad</strong> de los datos. Violarlo rompe el TDA.</p>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">3</span> POO rápida para implementar TDAs</h2>
+    <ul>
+      <li><strong>Clase</strong>: define el molde de los objetos. Se declara con <code>class</code>.</li>
+      <li><strong>Objeto</strong>: instancia de una clase. Se crea con <code>new</code>.</li>
+      <li><strong>Atributos</strong> (propiedades): almacenan el <em>estado</em>.</li>
+      <li><strong>Métodos</strong>: definen el <em>comportamiento</em>.</li>
+      <li><strong>Genéricos</strong> <code>&lt;T, U&gt;</code>: permiten que una clase funcione con cualquier tipo sin duplicar código.</li>
+    </ul>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">4</span> TDA Par Ordenado</h2>
+    <p>Representa <strong>dos elementos donde el orden importa</strong>: <code>(a, b) ≠ (b, a)</code> salvo que se defina explícitamente como simétrico. Formalmente (Kuratowski): <code>(a, b) = { {a}, {a, b} }</code>.</p>
+
+    <h3>Operaciones</h3>
+    <table>
+      <thead><tr><th>Operación</th><th>Entrada → Salida</th></tr></thead>
+      <tbody>
+        <tr><td><code>CrearPar(a, b)</code></td><td>→ ParOrdenado</td></tr>
+        <tr><td><code>ObtenerPrimero(par)</code></td><td>→ TipoDato (el <em>a</em>)</td></tr>
+        <tr><td><code>ObtenerSegundo(par)</code></td><td>→ TipoDato (el <em>b</em>)</td></tr>
+        <tr><td><code>EsIgual((a,b), (c,d))</code></td><td>→ boolean (true si a=c y b=d)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Invariantes de representación</h3>
+    <ul>
+      <li>El par <strong>siempre contiene dos elementos</strong>.</li>
+      <li>El par <strong>no debe ser nulo</strong>.</li>
+      <li>El <strong>orden</strong> es relevante.</li>
+      <li>El par es <strong>inmutable</strong>.</li>
+    </ul>
+
+    <h3>Implementación en Java con genéricos</h3>
+    <pre><code>public class ParOrdenado&lt;T, U&gt; {
+    private final T primero;
+    private final U segundo;
+
+    public ParOrdenado(T primero, U segundo) {
+        this.primero = primero;
+        this.segundo = segundo;
+    }
+
+    public T obtenerPrimero() { return primero; }
+    public U obtenerSegundo() { return segundo; }
+
+    @Override
+    public String toString() {
+        return "(" + primero + ", " + segundo + ")";
+    }
+}</code></pre>
+
+    <h3>Aplicaciones</h3>
+    <ul>
+      <li>Coordenadas en un plano: <code>(x, y)</code>.</li>
+      <li>Clave-valor en diccionarios.</li>
+      <li>Aristas de un grafo: <code>(nodo1, nodo2)</code>.</li>
+    </ul>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">5</span> TDA Tupla</h2>
+    <p>Generalización del Par Ordenado: <strong>colección ordenada de n elementos</strong>, usualmente de distintos tipos. En el curso se implementan <code>Tupla2</code>, <code>Tupla3</code>, <code>Tupla4</code>.</p>
+
+    <h3>Operaciones</h3>
+    <ul>
+      <li><code>ObtenerElemento(T, i)</code> → valor en posición <code>i</code>.</li>
+      <li><code>Tamaño(T)</code> → <code>n</code></li>
+      <li><code>Concatenar(T1, T2)</code> → nueva tupla</li>
+      <li><code>EsIgual(T1, T2)</code> → boolean</li>
+      <li><code>Desempaquetar(T)</code> → <code>(x1, x2, ..., xn)</code></li>
+    </ul>
+
+    <h3>Invariantes</h3>
+    <ol>
+      <li><strong>Cantidad fija</strong> de elementos. No se puede agregar ni quitar.</li>
+      <li><strong>Orden</strong> preservado.</li>
+      <li><strong>Inmutable</strong>: toda "modificación" devuelve una tupla nueva.</li>
+    </ol>
+
+    <pre><code>public final class Tupla3&lt;T, U, V&gt; {
+    private final T primero;
+    private final U segundo;
+    private final V tercero;
+
+    public Tupla3(T p, U s, V t) { primero=p; segundo=s; tercero=t; }
+    public T getPrimero() { return primero; }
+    public U getSegundo() { return segundo; }
+    public V getTercero() { return tercero; }
+}</code></pre>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">6</span> TDA Conjunto</h2>
+    <p>Colección <strong>sin orden específico</strong> y <strong>sin elementos duplicados</strong>. Solo interesa la pertenencia.</p>
+    <p>Notación: <code>C = { e₁, e₂, ..., eₙ }</code>, todos del mismo dominio.</p>
+
+    <h3>Operaciones</h3>
+    <table>
+      <thead><tr><th>Operación</th><th>Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><code>crear()</code></td><td>Crea un conjunto vacío.</td></tr>
+        <tr><td><code>agregar(e)</code></td><td>Inserta <code>e</code> si no está presente.</td></tr>
+        <tr><td><code>eliminar(e)</code></td><td>Elimina <code>e</code> si está presente.</td></tr>
+        <tr><td><code>pertenece(e)</code></td><td>→ true si <code>e ∈ C</code>.</td></tr>
+        <tr><td><code>esVacio()</code></td><td>→ true si no hay elementos.</td></tr>
+        <tr><td><code>cardinalidad()</code></td><td>→ cantidad de elementos.</td></tr>
+        <tr><td><code>union(C₂)</code></td><td>→ C ∪ C₂.</td></tr>
+        <tr><td><code>interseccion(C₂)</code></td><td>→ C ∩ C₂.</td></tr>
+        <tr><td><code>diferencia(C₁, C₂)</code></td><td>→ C₁ \ C₂.</td></tr>
+        <tr><td><code>esSubconjunto(C₁, C₂)</code></td><td>→ true si C₁ ⊆ C₂.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Invariantes</h3>
+    <ol>
+      <li><strong>No hay duplicados</strong>: ∀ eᵢ, eⱼ ∈ C, si i ≠ j entonces eᵢ ≠ eⱼ.</li>
+      <li>El conjunto <strong>vacío</strong> es un caso válido: <code>C = ∅</code>.</li>
+      <li>Los elementos pertenecen al <strong>dominio definido</strong>.</li>
+    </ol>
+
+    <h3>Implementaciones típicas</h3>
+    <ul>
+      <li><strong>Estática</strong> con array de tamaño fijo.</li>
+      <li><strong>Dinámica</strong> con lista enlazada.</li>
+      <li>En Java estándar: <code>HashSet&lt;E&gt;</code> (hash), <code>TreeSet&lt;E&gt;</code> (árbol balanceado, ordenado).</li>
+    </ul>
+    <div class="callout warning">
+      <strong>⚠ Complejidad de agregar</strong>
+      En una implementación naive con lista enlazada, <code>agregar(e)</code> es <code>O(n)</code> porque hay que recorrer toda la lista para verificar que no esté. Si insertás al principio sin chequear duplicados es <code>O(1)</code>, pero rompés el invariante.
+    </div>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">7</span> Puntos clave para el examen</h2>
+    <ol>
+      <li>Saber <strong>definir qué es un TDA</strong> en una frase: "estructura especificada por comportamiento, no implementación".</li>
+      <li>Poder <strong>enumerar los invariantes</strong> de cada TDA visto: Par Ordenado, Tupla, Conjunto.</li>
+      <li>Diferencia <strong>Par Ordenado vs Tupla</strong>: el primero siempre tiene 2 elementos; la tupla tiene n.</li>
+      <li>Diferencia <strong>Conjunto vs Lista</strong>: el conjunto <em>no</em> mantiene orden y <em>no</em> admite duplicados.</li>
+      <li>Genéricos en Java: <code>class ParOrdenado&lt;T, U&gt;</code> para trabajar con cualquier tipo sin duplicar código.</li>
+      <li><strong>Inmutabilidad</strong>: campos <code>final</code> + constructor + getters, sin setters.</li>
+    </ol>
+  </section>
+
+  <div class="tpo-link">
+    <strong>📂 En el TPO:</strong> <code>Paquete&lt;T&gt;</code> es un ejemplo de clase genérica e inmutable (todos los campos <code>final</code>, igualdad por ID). <code>Ruta</code> es un Par Ordenado matizado (con distancia) implementado como <code>record</code>.
+  </div>
+
+  <nav class="prev-next">
+    <a class="prev" href="/cuestionario/clase/2">
+      <span class="nav-label">← Anterior</span>
+      <span class="nav-title">Clase 2 · Complejidad</span>
+    </a>
+    <a class="next" href="/cuestionario/clase/4">
+      <span class="nav-label">Siguiente →</span>
+      <span class="nav-title">Clase 4 · Lista, Pila y Cola</span>
+    </a>
+  </nav>
+
+</div>
+
+<script src="/cuestionario/assets/nav.js"></script>
+</body>
+</html>

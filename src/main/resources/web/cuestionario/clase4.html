@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 4 — TAD Lista, Pila y Cola · AyED II</title>
+<link rel="stylesheet" href="/cuestionario/assets/estudio.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/cuestionario">
+    <span class="brand-icon">AyED</span>
+    <span>AyED II <span class="brand-sub">· UADE 3.4.229 · 2026-1C</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/cuestionario">🏠 Inicio</a>
+    <a class="nav-link" href="/cuestionario/quiz">📝 Quiz</a>
+    <a class="nav-link" href="/cuestionario/resumenes">📚 Resúmenes</a>
+    <a class="nav-link" href="/cuestionario/exposicion">🎤 Exposición</a>
+    <a class="nav-link" href="/">🚚 TPO</a>
+    <button id="theme-toggle" class="theme-toggle" type="button">Modo claro</button>
+  </div>
+</nav>
+
+<div class="container-narrow">
+
+  <header class="summary-header">
+    <span class="eyebrow">Clase 4 · 10/04/2026</span>
+    <h1>TAD Lista, Pila y Cola</h1>
+    <p class="lead">Tres TDAs lineales que caen <strong>casi siempre</strong> en el parcial: Lista (ordenada con índice), Pila (LIFO) y Cola (FIFO). El TPO usa Pila y Cola de prioridad directamente.</p>
+    <div class="tags">
+      <span class="badge">Lista</span>
+      <span class="badge">Pila LIFO</span>
+      <span class="badge">Cola FIFO</span>
+      <span class="badge">O(1)</span>
+    </div>
+  </header>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">1</span> TAD Lista</h2>
+    <p>Colección <strong>ordenada</strong> de elementos, cada uno con una posición específica. Se puede acceder, modificar o eliminar por índice.</p>
+    <p>Notación: <code>L = [a₁, a₂, ..., aₙ]</code>. Longitud <code>n</code>.</p>
+
+    <h3>Operaciones principales</h3>
+    <table>
+      <thead><tr><th>Operación</th><th>Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><code>crearLista()</code></td><td>Crea una lista vacía.</td></tr>
+        <tr><td><code>obtener(i)</code></td><td>Devuelve el elemento en posición <code>i</code> (indexado desde 0).</td></tr>
+        <tr><td><code>longitud()</code></td><td>Número de elementos.</td></tr>
+        <tr><td><code>insertar(i, e)</code></td><td>Inserta en posición <code>i</code>, desplazando el resto.</td></tr>
+        <tr><td><code>eliminar(i)</code></td><td>Elimina el elemento en <code>i</code> y ajusta la lista.</td></tr>
+        <tr><td><code>reemplazar(i, e)</code></td><td>Cambia el elemento en <code>i</code> por <code>e</code>.</td></tr>
+        <tr><td><code>buscar(e)</code></td><td>Devuelve la posición de <code>e</code>, o <code>-1</code> si no está.</td></tr>
+        <tr><td><code>contiene(e)</code></td><td>Variante booleana de <code>buscar</code>.</td></tr>
+        <tr><td><code>concatenar(L₂)</code></td><td>Pega <code>L₂</code> al final.</td></tr>
+        <tr><td><code>invertir()</code></td><td>Devuelve la lista en orden inverso.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Invariantes de representación</h3>
+    <ol>
+      <li>Los elementos están en un <strong>orden definido</strong>.</li>
+      <li>El <strong>índice es único</strong> y empieza en <code>0</code>.</li>
+      <li>El <strong>tamaño es consistente</strong>: al insertar/eliminar, <code>longitud()</code> cambia en consecuencia.</li>
+      <li><strong>No hay accesos fuera de rango</strong>: pedir una posición inválida debe dar error.</li>
+    </ol>
+
+    <h3>Implementaciones en Java</h3>
+    <ul>
+      <li><code>ArrayList&lt;E&gt;</code> — array redimensionable, acceso por índice <code>O(1)</code>, inserción al final amortizada <code>O(1)</code>.</li>
+      <li><code>LinkedList&lt;E&gt;</code> — lista doblemente enlazada, inserción/eliminación al inicio y final <code>O(1)</code>, acceso por índice <code>O(n)</code>.</li>
+    </ul>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">2</span> TAD Pila (Stack · LIFO)</h2>
+    <p>Colección con acceso <strong>LIFO</strong> (<em>Last In, First Out</em>): el último elemento agregado es el primero en salir. Solo se opera sobre el <strong>tope</strong>.</p>
+
+    <h3>Operaciones</h3>
+    <table>
+      <thead><tr><th>Operación</th><th>Qué hace</th><th>Complejidad</th></tr></thead>
+      <tbody>
+        <tr><td><code>crearPila()</code></td><td>Crea una pila vacía.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>apilar(e)</code></td><td>Agrega <code>e</code> al tope.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>desapilar()</code></td><td>Remueve y devuelve el tope.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>cima()</code></td><td>Devuelve el tope sin removerlo.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>esVacia()</code></td><td>→ true si no hay elementos.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>tamaño()</code></td><td>Cantidad de elementos.</td><td><code>O(1)</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Invariantes</h3>
+    <ol>
+      <li><strong>Orden LIFO</strong>: el último en entrar es el primero en salir.</li>
+      <li><strong>Tope consistente</strong>: si la pila no está vacía, <code>top</code> apunta al último agregado.</li>
+      <li><strong>Integridad</strong>: los elementos mantienen la secuencia hasta ser desapilados.</li>
+      <li><strong>Sin acceso aleatorio</strong>: solo el tope es operable.</li>
+    </ol>
+
+    <h3>Implementaciones en Java</h3>
+    <ul>
+      <li><code>java.util.Stack&lt;E&gt;</code> — existe pero está <strong>desaconsejada</strong> por los creadores del JDK.</li>
+      <li><code>ArrayDeque&lt;E&gt;</code> — se recomienda usar como pila (<code>push</code>, <code>pop</code>, <code>peek</code>). Más rápida y sin sincronización innecesaria.</li>
+    </ul>
+
+    <div class="callout">
+      <strong>💡 Usos típicos</strong>
+      Historial de operaciones (undo/redo), evaluación de expresiones, recursión (la pila de llamadas del sistema), backtracking.
+    </div>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">3</span> TAD Cola (Queue · FIFO)</h2>
+    <p>Estructura lineal con acceso <strong>FIFO</strong> (<em>First In, First Out</em>): el primer elemento en entrar es el primero en salir.</p>
+    <p>Tiene dos extremos: <strong>frente</strong> (head, donde se sale) y <strong>final</strong> (tail, donde se entra).</p>
+
+    <h3>Operaciones</h3>
+    <table>
+      <thead><tr><th>Operación</th><th>Qué hace</th><th>Complejidad</th></tr></thead>
+      <tbody>
+        <tr><td><code>crearCola()</code></td><td>Crea una cola vacía.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>encolar(e)</code></td><td>Agrega <code>e</code> al final.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>desencolar()</code></td><td>Remueve y devuelve el frente.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>frente()</code></td><td>Devuelve el frente sin removerlo.</td><td><code>O(1)</code></td></tr>
+        <tr><td><code>estaVacia()</code></td><td>→ true si no hay elementos.</td><td><code>O(1)</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Invariantes</h3>
+    <ol>
+      <li><strong>Orden FIFO</strong>: primero en entrar, primero en salir.</li>
+      <li><strong>Integridad de la estructura</strong>: solo se accede por frente o final.</li>
+      <li><strong>Consistencia de límites</strong>: no se puede desencolar una cola vacía.</li>
+    </ol>
+
+    <h3>Implementaciones en Java</h3>
+    <ul>
+      <li><code>LinkedList&lt;E&gt;</code> implementa <code>Queue&lt;E&gt;</code> (basada en lista enlazada).</li>
+      <li><code>ArrayDeque&lt;E&gt;</code> — basada en array; suele ser más eficiente que <code>LinkedList</code>.</li>
+    </ul>
+
+    <div class="callout">
+      <strong>💡 Usos típicos</strong>
+      Turnos de atención (bancos, delivery), planificación de procesos en un SO, buffers de red, <strong>BFS en grafos</strong>.
+    </div>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">4</span> Comparación rápida</h2>
+    <table>
+      <thead><tr><th></th><th>Lista</th><th>Pila</th><th>Cola</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Orden</strong></td><td>Ordenada por índice</td><td>LIFO</td><td>FIFO</td></tr>
+        <tr><td><strong>Acceso</strong></td><td>Por índice (cualquiera)</td><td>Solo cima</td><td>Solo frente</td></tr>
+        <tr><td><strong>Inserción</strong></td><td>En cualquier posición</td><td>Solo cima</td><td>Solo al final</td></tr>
+        <tr><td><strong>Eliminación</strong></td><td>En cualquier posición</td><td>Solo cima</td><td>Solo frente</td></tr>
+        <tr><td><strong>Duplicados</strong></td><td>Sí</td><td>Sí</td><td>Sí</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">5</span> Ejercicio típico: historial con undo</h2>
+    <p>Guardar operaciones matemáticas en una pila. Cada operación es una tupla <code>(operando1, operando2, operador, resultado)</code>.</p>
+    <ul>
+      <li><strong>Registrar</strong>: <code>apilar</code> la tupla.</li>
+      <li><strong>Mostrar historial</strong>: recorrer la pila sin modificarla.</li>
+      <li><strong>Deshacer última</strong>: <code>desapilar</code> y descartar. <em>Esto es O(1)</em>.</li>
+    </ul>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">6</span> Puntos clave para el examen</h2>
+    <ol>
+      <li>Saber decir <strong>LIFO vs FIFO</strong> en una frase y dar un ejemplo.</li>
+      <li>Pila: <code>apilar</code>, <code>desapilar</code>, <code>cima</code>. <strong>Todas O(1).</strong></li>
+      <li>Cola: <code>encolar</code>, <code>desencolar</code>, <code>frente</code>. <strong>Todas O(1).</strong></li>
+      <li>Lista: <code>obtener(i)</code> es <code>O(1)</code> en array, <code>O(n)</code> en lista enlazada.</li>
+      <li>Undo en pila = <strong>O(1)</strong> (es un simple <code>pop</code>).</li>
+      <li>En Java, preferí <code>ArrayDeque</code> sobre <code>Stack</code>.</li>
+    </ol>
+  </section>
+
+  <div class="tpo-link">
+    <strong>📂 En el TPO:</strong> <code>Camion.java</code> (paquete <code>structures</code>) es una <strong>Pila de paquetes</strong> implementada con <code>ArrayDeque</code>. Su método <code>deshacerUltimaCarga()</code> es literalmente el requisito "undo O(1)" que vale puntos en el parcial. <code>CentroDistribucion.java</code> es una cola <em>con prioridad</em> (tema de clases más avanzadas) pero conceptualmente se apoya en esta clase.
+  </div>
+
+  <nav class="prev-next">
+    <a class="prev" href="/cuestionario/clase/3">
+      <span class="nav-label">← Anterior</span>
+      <span class="nav-title">Clase 3 · TDAs básicos</span>
+    </a>
+    <a class="next" href="/cuestionario/clase/5">
+      <span class="nav-label">Siguiente →</span>
+      <span class="nav-title">Clase 5 · Deque y Diccionario</span>
+    </a>
+  </nav>
+
+</div>
+
+<script src="/cuestionario/assets/nav.js"></script>
+</body>
+</html>

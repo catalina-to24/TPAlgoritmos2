@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 1 — Repaso de Java · AyED II</title>
+<link rel="stylesheet" href="/cuestionario/assets/estudio.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/cuestionario">
+    <span class="brand-icon">AyED</span>
+    <span>AyED II <span class="brand-sub">· UADE 3.4.229 · 2026-1C</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/cuestionario">🏠 Inicio</a>
+    <a class="nav-link" href="/cuestionario/quiz">📝 Quiz</a>
+    <a class="nav-link" href="/cuestionario/resumenes">📚 Resúmenes</a>
+    <a class="nav-link" href="/cuestionario/exposicion">🎤 Exposición</a>
+    <a class="nav-link" href="/">🚚 TPO</a>
+    <button id="theme-toggle" class="theme-toggle" type="button">Modo claro</button>
+  </div>
+</nav>
+
+<div class="container-narrow">
+
+  <header class="summary-header">
+    <span class="eyebrow">Clase 1 · 13/03/2026</span>
+    <h1>Repaso de programación y Java</h1>
+    <p class="lead">Clase de nivelación: sintaxis de Java, estructuras de control, funciones, vectores y matrices. Es la base que asumen todas las clases siguientes.</p>
+    <div class="tags">
+      <span class="badge">Java</span>
+      <span class="badge">Sintaxis</span>
+      <span class="badge">Vectores</span>
+      <span class="badge">Matrices</span>
+    </div>
+  </header>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">1</span> Sintaxis general de Java</h2>
+    <p>Java es un lenguaje <strong>fuertemente tipado</strong>: al declarar una variable hay que fijar su tipo y éste no cambia. Ejemplo: <code>int i = 0;</code>, <code>String palabra = "hola";</code>, <code>double precio = 9.99;</code>.</p>
+    <p>Todo código vive dentro de una clase. Convenciones del curso:</p>
+    <ul>
+      <li><strong>Paquetes</strong> en minúsculas: <code>package ejercicios;</code></li>
+      <li><strong>Clases</strong> con mayúscula inicial: <code>public class HolaMundo</code></li>
+      <li><strong>Métodos y variables</strong> en camelCase: <code>mifuncion</code>, <code>precioTotal</code></li>
+    </ul>
+    <pre><code>package ejercicios;
+public class HolaMundo {
+    public static void main(String[] args) {
+        // comentario de una línea
+        int i;
+        i = 10;
+    }
+}</code></pre>
+    <p><strong>Entrada/salida estándar:</strong></p>
+    <pre><code>System.out.println("Ingrese un numero");
+Scanner scanner = new Scanner(System.in);
+int numero = scanner.nextInt();
+scanner.close();</code></pre>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">2</span> Funciones</h2>
+    <p>Una función tiene <strong>tipo de retorno</strong>, <strong>nombre</strong> y <strong>parámetros</strong>. Si no devuelve nada, el tipo de retorno es <code>void</code>.</p>
+    <pre><code>private static void saludar() {
+    System.out.println("Hola");
+}
+
+private static String saludarConNombre(String nombre) {
+    return "Su nombre es " + nombre;
+}</code></pre>
+    <p>Modificadores importantes:</p>
+    <table>
+      <thead><tr><th>Modificador</th><th>Qué significa</th></tr></thead>
+      <tbody>
+        <tr><td><code>public</code></td><td>Accesible desde cualquier clase.</td></tr>
+        <tr><td><code>private</code></td><td>Solo dentro de la misma clase.</td></tr>
+        <tr><td><code>static</code></td><td>No necesita una instancia para ser llamado.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">3</span> Estructuras condicionales</h2>
+    <h3><code>if</code> / <code>else if</code> / <code>else</code></h3>
+    <pre><code>int i = 11;
+if (i &gt; 10) {
+    System.out.println(i);
+} else {
+    System.out.println("muy chico");
+}</code></pre>
+    <h3><code>switch</code></h3>
+    <pre><code>switch (i) {
+    case 1: System.out.println("Es uno"); break;
+    case 2: System.out.println("Es dos"); break;
+    default: break;
+}</code></pre>
+    <div class="callout warning">
+      <strong>⚠ Cuidado con el break</strong>
+      Sin <code>break</code> el <code>switch</code> cae al siguiente caso (<em>fall-through</em>). Suele ser una fuente típica de bugs en el parcial.
+    </div>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">4</span> Estructuras repetitivas</h2>
+    <table>
+      <thead><tr><th>Estructura</th><th>Cuándo usarla</th><th>Sintaxis</th></tr></thead>
+      <tbody>
+        <tr><td><code>for</code></td><td>Sabés cuántas iteraciones necesitás.</td><td><code>for(int i=0; i&lt;10; i++){ ... }</code></td></tr>
+        <tr><td><code>while</code></td><td>La condición se evalúa <strong>antes</strong>; puede no ejecutarse nunca.</td><td><code>while(cond){ ... }</code></td></tr>
+        <tr><td><code>do ... while</code></td><td>La condición se evalúa <strong>después</strong>; ejecuta al menos una vez.</td><td><code>do{ ... }while(cond);</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">5</span> Vectores (arrays unidimensionales)</h2>
+    <p>Un vector es un <strong>contenedor de tamaño fijo</strong> de elementos del mismo tipo. La longitud se fija al crearlo y no se puede cambiar.</p>
+    <pre><code>// Forma 1: reserva memoria y asigna
+int[] vector = new int[10];
+vector[0] = 15;
+
+// Forma 2: literal
+int[] vector2 = {3, 4, 1, 2, 6};
+
+// Recorrido
+for (int i = 0; i &lt; vector2.length; i++) {
+    System.out.println(vector2[i]);
+}</code></pre>
+    <p>Se accede por <strong>índice numérico</strong> desde <code>0</code> hasta <code>length - 1</code>. Salir del rango lanza <code>ArrayIndexOutOfBoundsException</code>.</p>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">6</span> Acumuladores booleanos</h2>
+    <p>Técnica clásica: usar una variable <code>boolean</code> para resumir el resultado de una iteración sobre una colección.</p>
+    <pre><code>public static boolean tieneAlgunNumeroPar(int[] numeros) {
+    boolean rta = false;
+    for (int i = 0; i &lt; numeros.length; i++) {
+        if (esPar(numeros[i])) {
+            rta = true;
+        }
+    }
+    return rta;
+}</code></pre>
+    <div class="callout">
+      <strong>💡 Variantes típicas</strong>
+      "¿Existe al menos uno?" → arrancar en <code>false</code> y marcar <code>true</code>.
+      "¿Lo cumplen <em>todos</em>?" → arrancar en <code>true</code> y marcar <code>false</code> apenas uno falle.
+    </div>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">7</span> Matrices (arrays bidimensionales)</h2>
+    <pre><code>int[][] matriz = {
+    {1, 2, 3},
+    {4, 5, 6}
+};
+
+// Recorrido por fila
+for (int i = 0; i &lt; matriz.length; i++) {
+    for (int j = 0; j &lt; matriz[i].length; j++) {
+        System.out.print(matriz[i][j] + " ");
+    }
+    System.out.println();
+}</code></pre>
+    <p><code>matriz.length</code> es la cantidad de filas; <code>matriz[0].length</code> es la cantidad de columnas (asumiendo filas del mismo largo).</p>
+  </section>
+
+  <section class="summary-section">
+    <h2><span class="sec-num">8</span> Puntos clave para el examen</h2>
+    <ol>
+      <li>Diferencia entre <strong>tipo primitivo</strong> (<code>int</code>, <code>double</code>, <code>boolean</code>) y <strong>referencia</strong> (<code>String</code>, arrays, objetos).</li>
+      <li>Java es <strong>fuertemente tipado</strong>: el tipo de una variable se declara y no cambia.</li>
+      <li>El <code>for</code> clásico tiene <strong>tres partes</strong>: inicialización, condición, incremento.</li>
+      <li>Los <strong>vectores tienen tamaño fijo</strong>; si necesitás crecer, usá <code>ArrayList</code> (tema de clases siguientes).</li>
+      <li>Un método <code>static</code> puede llamarse sin crear una instancia de la clase.</li>
+    </ol>
+  </section>
+
+  <div class="tpo-link">
+    <strong>📂 En el TPO:</strong> prácticamente todo el código está escrito con estas herramientas base. Mirá cualquier clase del paquete <code>structures/</code> para ver un <code>for</code> recorriendo un array y retornando el resultado.
+  </div>
+
+  <nav class="prev-next">
+    <span class="placeholder"></span>
+    <a class="next" href="/cuestionario/clase/2">
+      <span class="nav-label">Siguiente →</span>
+      <span class="nav-title">Clase 2 · Complejidad algorítmica</span>
+    </a>
+  </nav>
+
+</div>
+
+<script src="/cuestionario/assets/nav.js"></script>
+</body>
+</html>

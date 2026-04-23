@@ -1,0 +1,10 @@
+services:
+  logiuade:
+    build: .
+    container_name: logiuade
+    ports:
+      - "7070:7070"
+    volumes:
+      - ./data:/app/data
+      - ./clases:/app/clases:ro
+    restart: always

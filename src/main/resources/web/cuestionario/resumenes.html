@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resúmenes por clase · AyED II</title>
+<link rel="stylesheet" href="/cuestionario/assets/estudio.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/cuestionario">
+    <span class="brand-icon">AyED</span>
+    <span>AyED II <span class="brand-sub">· UADE 3.4.229 · 2026-1C</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/cuestionario">🏠 Inicio</a>
+    <a class="nav-link" href="/cuestionario/quiz">📝 Quiz</a>
+    <a class="nav-link" href="/cuestionario/resumenes">📚 Resúmenes</a>
+    <a class="nav-link" href="/cuestionario/exposicion">🎤 Exposición</a>
+    <a class="nav-link" href="/">🚚 TPO</a>
+    <button id="theme-toggle" class="theme-toggle" type="button">Modo claro</button>
+  </div>
+</nav>
+
+<div class="container">
+  <h1 class="page-title">📚 Resúmenes por clase</h1>
+  <p class="page-subtitle">
+    Un resumen por cada clase dictada, con links al PDF original de cátedra para repaso profundo.
+  </p>
+
+  <div class="info-box">
+    <h3>Cómo usar</h3>
+    <ul>
+      <li><strong>Ver resumen</strong> abre un HTML sintético con lo clave para el examen.</li>
+      <li><strong>Ver PDF</strong> muestra las filminas originales en el navegador.</li>
+      <li><strong>Descargar</strong> baja el PDF al disco para repasar offline.</li>
+    </ul>
+  </div>
+
+  <div class="unit-list" id="unit-list"></div>
+</div>
+
+<script>
+const UNITS = [
+  { n:1, title:'Repaso de programación y Java',
+    topics:'Sintaxis, variables, funciones, if/switch, for/while/do-while, vectores, matrices, acumuladores booleanos.' },
+  { n:2, title:'Complejidad algorítmica',
+    topics:'T(n), conteo de instrucciones, Big O, demostración con c y n₀, tasas de crecimiento (lineal, cuadrática, logarítmica, factorial).' },
+  { n:3, title:'TDAs: Par Ordenado, Tupla, Conjunto',
+    topics:'Concepto de TDA, invariante de representación, POO con genéricos, Par Ordenado, Tupla de n elementos, Conjunto.' },
+  { n:4, title:'TAD Lista, Pila y Cola',
+    topics:'Lista ordenada con acceso por índice, Pila LIFO (apilar/desapilar/cima), Cola FIFO (encolar/desencolar/frente).' },
+  { n:5, title:'TAD Deque y Diccionario',
+    topics:'Deque (doble terminado, insertar/eliminar en ambos extremos), Diccionario (clave-valor, claves únicas).' },
+  { n:6, title:'TADs del dominio, archivos y JSON',
+    topics:'TADs específicos (Cliente, Producto, etc.), lectura/escritura de archivos, formato JSON, librería Gson.' },
+];
+
+const list = document.getElementById('unit-list');
+list.innerHTML = UNITS.map(u => `
+  <div class="unit-card">
+    <div class="unit-header">
+      <span class="unit-number">${u.n}</span>
+      <span class="unit-title-text">Clase ${u.n} — ${u.title}</span>
+    </div>
+    <div class="unit-body">
+      <div class="action-group">
+        <h4>📄 Resumen HTML</h4>
+        <p style="color:var(--text-mute);font-size:.88rem;margin-bottom:.7rem">${u.topics}</p>
+        <div class="action-buttons">
+          <a class="btn btn-primary" href="/cuestionario/clase/${u.n}">Ver resumen →</a>
+        </div>
+      </div>
+      <div class="action-group">
+        <h4>🎓 Filminas de cátedra</h4>
+        <p style="color:var(--text-mute);font-size:.88rem;margin-bottom:.7rem">El PDF oficial entregado por el profesor, sin editar.</p>
+        <div class="action-buttons">
+          <a class="btn" href="/cuestionario/pdf/clase/${u.n}" target="_blank" rel="noopener">Ver PDF ↗</a>
+          <a class="btn" href="/cuestionario/pdf/clase/${u.n}" download="AyED-II-clase-${u.n}.pdf">⬇ Descargar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+`).join('');
+</script>
+<script src="/cuestionario/assets/nav.js"></script>
+</body>
+</html>

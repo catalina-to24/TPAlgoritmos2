@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz · AyED II · UADE 2026-1C</title>
+<link rel="stylesheet" href="/cuestionario/assets/estudio.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/cuestionario">
+    <span class="brand-icon">AyED</span>
+    <span>AyED II <span class="brand-sub">· UADE 3.4.229 · 2026-1C</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/cuestionario">🏠 Inicio</a>
+    <a class="nav-link" href="/cuestionario/quiz">📝 Quiz</a>
+    <a class="nav-link" href="/cuestionario/resumenes">📚 Resúmenes</a>
+    <a class="nav-link" href="/cuestionario/exposicion">🎤 Exposición</a>
+    <a class="nav-link" href="/">🚚 TPO</a>
+    <button id="theme-toggle" class="theme-toggle" type="button">Modo claro</button>
+  </div>
+</nav>
+
+<div class="quiz-header">
+  <h1>Quiz — AyED II</h1>
+  <p class="meta">Preguntas organizadas por clase · Con explicación después de responder · El progreso se guarda en el navegador</p>
+  <div class="quiz-controls">
+    <button id="btn-reveal" type="button">Mostrar todas las respuestas</button>
+    <button id="btn-reset" type="button">Reiniciar</button>
+  </div>
+  <div class="score-bar">
+    <span><span class="dot correct"></span> Correctas: <strong id="score-correct">0</strong></span>
+    <span><span class="dot wrong"></span> Incorrectas: <strong id="score-wrong">0</strong></span>
+    <span><span class="dot pending"></span> Pendientes: <strong id="score-pending">0</strong></span>
+    <span>Total: <strong id="score-total">0</strong></span>
+  </div>
+</div>
+
+<div class="container-narrow" id="quiz-root"></div>
+
+<script>
+const QUIZ_DATA = [
+  {
+    unit: "Clase 1 — Repaso de Java",
+    questions: [
+      { q: "¿Qué significa que Java sea un lenguaje fuertemente tipado?",
+        options: ["Las variables no se pueden declarar", "Cada variable tiene un tipo fijo que debe declararse", "Los tipos se infieren en tiempo de ejecución", "Solo admite el tipo int"],
+        correct: 1,
+        explanation: "En Java se declara el tipo al crear la variable (int i = 0;) y ese tipo no cambia durante la ejecución." },
+      { q: "¿Qué imprime por pantalla una sentencia en Java?",
+        options: ["console.log", "printf", "System.out.println", "echo"],
+        correct: 2,
+        explanation: "System.out.println escribe en la salida estándar con un salto de línea al final." },
+      { q: "¿Cuál es la diferencia principal entre while y do-while?",
+        options: ["while es más rápido que do-while", "do-while ejecuta el cuerpo al menos una vez porque la condición se evalúa al final", "do-while no se puede usar en Java", "while solo funciona con números"],
+        correct: 1,
+        explanation: "while evalúa la condición antes (puede no ejecutarse nunca). do-while la evalúa después del cuerpo, por lo que siempre ejecuta al menos una iteración." },
+      { q: "¿Cuál es la longitud máxima de un vector declarado como int[] v = new int[10]; al que acceder con índice?",
+        options: ["10 (de 0 a 10)", "9 (de 0 a 9)", "11 (de 0 a 10)", "No tiene límite"],
+        correct: 1,
+        explanation: "Los índices válidos van de 0 a length-1, es decir de 0 a 9. Acceder a v[10] lanza ArrayIndexOutOfBoundsException." },
+      { q: "Técnica del 'acumulador booleano' para responder \"¿hay algún elemento par?\":",
+        options: ["Arrancar en true y marcar false si se encuentra uno par", "Arrancar en false y marcar true si se encuentra uno par", "Solo se puede hacer con un while", "No se puede hacer sin una función recursiva"],
+        correct: 1,
+        explanation: "Para '¿existe al menos uno?' se arranca en false y se pone true al encontrar uno válido. Para '¿lo cumplen todos?' se arranca en true y se pone false al fallar." },
+      { q: "¿Cómo se declara una matriz 2x3 en Java?",
+        options: ["int matriz[2][3];", "int[][] matriz = { {1,2,3}, {4,5,6} };", "Array.new(2,3)", "matrix[2,3] = new int;"],
+        correct: 1,
+        explanation: "Se declara como int[][] con literales separados por comas. matriz.length da 2 (filas); matriz[0].length da 3 (columnas)." },
+      { q: "¿Para qué sirve el modificador static en un método?",
+        options: ["Marca el método como inmutable", "Permite llamar al método sin instanciar la clase", "Hace el método sincronizado", "Oculta el método de otras clases"],
+        correct: 1,
+        explanation: "Un método static pertenece a la clase, no a una instancia. Se llama como Clase.metodo() sin crear un objeto." },
+      { q: "¿Qué pasa si en un switch olvidás el break en un case?",
+        options: ["Falla la compilación", "Se ejecuta el case y el default solamente", "Cae al siguiente case (fall-through) y lo ejecuta también", "El programa termina"],
+        correct: 2,
+        explanation: "Sin break el switch cae en el siguiente case (fall-through). Es una fuente clásica de bugs; por eso conviene poner break en todos los cases." },
+    ]
+  },
+  {
+    unit: "Clase 2 — Complejidad algorítmica",
+    questions: [
+      { q: "¿Qué representa T(n) en el análisis de complejidad?",
+        options: ["La cantidad de líneas de código", "El tiempo de ejecución modelado como número de instrucciones en función del tamaño n", "El tiempo exacto en segundos", "La cantidad de memoria RAM usada"],
+        correct: 1,
+        explanation: "T(n) es la cantidad de instrucciones ejecutadas en un 'computador idealizado' para una entrada de tamaño n. No es tiempo en segundos." },
+      { q: "¿Cuál es la definición formal de f(n) ∈ O(g(n))?",
+        options: ["f(n) = g(n) para todo n", "Existen c > 0 y n₀ ≥ 0 tales que f(n) ≤ c·g(n) para todo n ≥ n₀", "f(n) es menor que g(n) en el promedio", "f(n) / g(n) tiende a 0"],
+        correct: 1,
+        explanation: "Big O es una cota superior asintótica: existen constantes c y n₀ tal que f(n) no supera c·g(n) para todo n suficientemente grande." },
+      { q: "¿Cuál es la complejidad de recorrer un array con un solo for?",
+        options: ["O(1)", "O(log n)", "O(n)", "O(n²)"],
+        correct: 2,
+        explanation: "Un for que recorre todos los elementos de un array de tamaño n ejecuta n iteraciones: complejidad lineal O(n)." },
+      { q: "¿Cuál es la complejidad de dos for anidados que recorren la misma colección de n elementos?",
+        options: ["O(2n)", "O(n²)", "O(n log n)", "O(n)"],
+        correct: 1,
+        explanation: "Cada iteración del for externo dispara n iteraciones del interno: n·n = n² operaciones, por lo tanto O(n²)." },
+      { q: "Si f(n) = 5n² + 3n + 100, ¿a qué orden pertenece?",
+        options: ["O(n)", "O(n²)", "O(n³)", "O(5n²)"],
+        correct: 1,
+        explanation: "En notación Big O se descartan constantes y términos de menor orden: 5n² + 3n + 100 ∈ O(n²). La constante 5 no se escribe." },
+      { q: "¿Cuál de estas tasas crece más rápido?",
+        options: ["O(n log n)", "O(n²)", "O(n³)", "O(n!)"],
+        correct: 3,
+        explanation: "El orden es O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(n³) < O(2ⁿ) < O(n!). El factorial crece más rápido que todas las polinómicas y exponenciales base-constante." },
+      { q: "¿Qué significa que un algoritmo sea O(1)?",
+        options: ["Usa solo un byte de memoria", "Su costo no depende del tamaño de la entrada (constante)", "Siempre ejecuta exactamente una instrucción", "Es el algoritmo más lento posible"],
+        correct: 1,
+        explanation: "O(1) significa costo constante: independientemente de n, el tiempo no crece. Ejemplos típicos: apilar, desapilar, acceder a array[i]." },
+      { q: "Para demostrar que f(n) = 8n + 5 es O(n), se busca c y n₀. Con c = 9, ¿qué n₀ funciona?",
+        options: ["n₀ = 1", "n₀ = 5", "n₀ = 100", "No existe tal n₀"],
+        correct: 1,
+        explanation: "Planteamos 8n + 5 ≤ 9n ⇒ 5 ≤ n, así que n₀ = 5. Para todo n ≥ 5 se cumple la desigualdad." },
+      { q: "¿Para qué sirve descartar las constantes multiplicativas en Big O?",
+        options: ["Para que las ecuaciones se vean más lindas", "Porque no afectan la tasa de crecimiento asintótica", "Porque el profesor lo pide", "Porque el compilador las elimina"],
+        correct: 1,
+        explanation: "Las constantes dependen del hardware y del modelo de conteo, pero no cambian cómo el costo escala con n. Big O clasifica por tasa de crecimiento, no por valor absoluto." },
+      { q: "¿Cuándo Big O se vuelve realmente relevante?",
+        options: ["Con n pequeños", "Con n grandes (análisis asintótico)", "Solo en problemas de física", "Nunca, en la práctica"],
+        correct: 1,
+        explanation: "Para n chicos cualquier algoritmo es rápido. La diferencia entre O(n) y O(n²) se nota cuando n crece mucho; por eso se llama análisis 'asintótico'." },
+    ]
+  },
+  {
+    unit: "Clase 3 — TDAs: Par Ordenado, Tupla, Conjunto",
+    questions: [
+      { q: "¿Cuál es la definición de un TDA (Tipo de Dato Abstracto)?",
+        options: ["Una clase abstracta de Java", "Una estructura definida por su comportamiento y operaciones, no por su implementación", "Un tipo primitivo personalizado", "Un array de tipo Object"],
+        correct: 1,
+        explanation: "Un TDA especifica QUÉ operaciones se pueden hacer y qué propiedades tienen, sin fijar CÓMO se implementan internamente." },
+      { q: "¿Qué es un 'invariante de representación'?",
+        options: ["Un atributo que no cambia nunca", "Una condición que siempre debe cumplirse para que el estado del TDA sea válido", "El constructor de la clase", "Un método final"],
+        correct: 1,
+        explanation: "Es una regla que debe mantenerse antes y después de cada operación. Por ejemplo: 'no hay duplicados' en un Conjunto, o 'el tope apunta al último agregado' en una Pila." },
+      { q: "¿Cuál es la diferencia clave entre un Par Ordenado y un Conjunto de 2 elementos?",
+        options: ["El Par permite duplicados, el Conjunto no", "El orden importa en el Par pero no en el Conjunto", "El Par usa arrays y el Conjunto usa listas", "No hay diferencia"],
+        correct: 1,
+        explanation: "En el Par Ordenado (a, b) ≠ (b, a) porque el orden es significativo. En el Conjunto {a, b} = {b, a}." },
+      { q: "¿Cuál NO es un invariante típico del TDA Par Ordenado?",
+        options: ["Siempre tiene dos elementos", "No puede ser nulo", "El orden es relevante", "Los elementos deben ser del mismo tipo"],
+        correct: 3,
+        explanation: "El par puede tener elementos de tipos distintos. Por eso en Java se usan dos genéricos: ParOrdenado&lt;T, U&gt;." },
+      { q: "Un TDA Tupla implementado con genéricos Tupla3&lt;T, U, V&gt; en Java: ¿cuántos elementos almacena?",
+        options: ["Cualquier cantidad", "Exactamente 3", "3 o más", "Depende del constructor"],
+        correct: 1,
+        explanation: "Tupla3 es específica para 3 elementos. Es un invariante del tipo: una vez creada, la cantidad es fija." },
+      { q: "¿Qué característica distingue al TDA Conjunto?",
+        options: ["Permite acceder por índice", "Es ordenado por inserción", "No admite elementos duplicados", "Tiene operaciones LIFO"],
+        correct: 2,
+        explanation: "Un Conjunto representa una colección sin duplicados. Si ya está el elemento, agregar(e) no hace nada." },
+      { q: "¿Cuál es el resultado de la operación C₁ ∩ C₂ si C₁ = {1,2,3} y C₂ = {2,3,4}?",
+        options: ["{1,2,3,4}", "{1,4}", "{2,3}", "{}"],
+        correct: 2,
+        explanation: "La intersección contiene solo los elementos que están en ambos conjuntos: {2, 3}." },
+      { q: "En Java, ¿cuál de estas clases implementa un Conjunto no ordenado?",
+        options: ["LinkedList", "ArrayList", "HashSet", "HashMap"],
+        correct: 2,
+        explanation: "HashSet implementa Set usando una tabla hash. TreeSet también implementa Set pero ordenado." },
+      { q: "¿Por qué conviene que un Par Ordenado sea inmutable?",
+        options: ["Para ahorrar memoria", "Para que el invariante de 'orden relevante' no pueda ser violado accidentalmente", "Porque Java lo obliga", "Para que compile más rápido"],
+        correct: 1,
+        explanation: "La inmutabilidad evita que alguien modifique los campos después de creado el par. Se logra con campos 'final' y sin setters." },
+      { q: "¿Cuál es la complejidad esperada de agregar(e) en un Conjunto implementado con lista enlazada que previene duplicados?",
+        options: ["O(1)", "O(log n)", "O(n) — hay que recorrer para chequear duplicado", "O(n²)"],
+        correct: 2,
+        explanation: "Para verificar que no exista, hay que recorrer toda la lista. Por eso es O(n). Con HashSet es O(1) promedio gracias al hash." },
+    ]
+  },
+  {
+    unit: "Clase 4 — TAD Lista, Pila y Cola",
+    questions: [
+      { q: "¿Qué significa LIFO?",
+        options: ["Last In, First Out", "List Iterator First Order", "Linked In, First Out", "Linear Internal File Order"],
+        correct: 0,
+        explanation: "Last In, First Out: el último elemento en entrar es el primero en salir. Es la regla de una pila." },
+      { q: "¿Qué significa FIFO?",
+        options: ["Final In, Final Out", "First Iterator Final Order", "First In, First Out", "Fast Internal File Order"],
+        correct: 2,
+        explanation: "First In, First Out: el primer elemento en entrar es el primero en salir. Regla de una cola." },
+      { q: "¿Cuál es la complejidad de la operación apilar() en una Pila bien implementada?",
+        options: ["O(1)", "O(log n)", "O(n)", "O(n²)"],
+        correct: 0,
+        explanation: "Apilar agrega al tope sin recorrer la estructura: es una operación constante O(1)." },
+      { q: "¿Cuál es la complejidad de desapilar() en una Pila?",
+        options: ["O(1)", "O(log n)", "O(n)", "Depende del tamaño"],
+        correct: 0,
+        explanation: "Remover el tope también es O(1). Tanto apilar como desapilar son operaciones constantes por diseño." },
+      { q: "En una Cola, ¿por qué extremos se agrega y se quita?",
+        options: ["Se agrega y se quita por el mismo extremo", "Se agrega al final y se quita del frente", "Se agrega al frente y se quita del final", "Puede ser cualquier extremo"],
+        correct: 1,
+        explanation: "encolar agrega al final (tail); desencolar quita del frente (head). Esto garantiza el orden FIFO." },
+      { q: "En una Pila de historial de operaciones, ¿cómo se implementa 'deshacer la última operación'?",
+        options: ["Recorriendo toda la pila", "Haciendo pop() sobre la pila: O(1)", "Borrando todo y volviendo a armar", "No se puede deshacer con una pila"],
+        correct: 1,
+        explanation: "Como el tope es justamente la última operación, un pop la quita en O(1). Por eso la pila es ideal para undo." },
+      { q: "¿Cuál de estas clases de Java se recomienda para implementar una Pila?",
+        options: ["java.util.Stack (está desaconsejada)", "ArrayList", "ArrayDeque", "HashMap"],
+        correct: 2,
+        explanation: "ArrayDeque se prefiere sobre Stack porque no tiene la sincronización innecesaria de Stack y es más rápida." },
+      { q: "¿Cuál es la complejidad de obtener(i) en una Lista implementada con ArrayList?",
+        options: ["O(1)", "O(log n)", "O(n)", "O(n²)"],
+        correct: 0,
+        explanation: "ArrayList usa un array interno: el acceso por índice es directo, O(1)." },
+      { q: "¿Cuál es la complejidad de obtener(i) en una Lista implementada con LinkedList?",
+        options: ["O(1)", "O(log n)", "O(n) — hay que recorrer los nodos", "O(n²)"],
+        correct: 2,
+        explanation: "LinkedList no tiene acceso directo por índice; hay que seguir los punteros uno por uno. Por eso es O(n)." },
+      { q: "¿Qué uso típico tiene una Cola (FIFO)?",
+        options: ["Historial de operaciones (undo)", "Expresiones matemáticas", "Fila de atención en un banco", "Guardar pares clave-valor"],
+        correct: 2,
+        explanation: "La fila del banco es el ejemplo clásico de FIFO: el que llegó primero se atiende primero. También se usa en BFS en grafos y planificación de procesos." },
+      { q: "Si una Pila está vacía y se llama desapilar(), ¿qué debe pasar?",
+        options: ["Devolver null silenciosamente", "Lanzar una excepción o error (rompe el invariante de consistencia)", "Crear un elemento nuevo", "Devolver 0"],
+        correct: 1,
+        explanation: "Desapilar una pila vacía viola el invariante. En Java típicamente lanza NoSuchElementException." },
+    ]
+  },
+  {
+    unit: "Clase 5 — TAD Deque y TAD Diccionario",
+    questions: [
+      { q: "¿Qué significa 'Deque'?",
+        options: ["Dynamic Queue", "Double-Ended Queue (cola doblemente terminada)", "Destructive Queue", "Digital Queue"],
+        correct: 1,
+        explanation: "Deque = Double-Ended Queue. Permite insertar y eliminar por ambos extremos, frente y final." },
+      { q: "¿Cuál es la complejidad esperada de agregarInicio(e) en un Deque bien implementado?",
+        options: ["O(1)", "O(log n)", "O(n)", "O(n²)"],
+        correct: 0,
+        explanation: "Todas las operaciones en los extremos del Deque son O(1) usando lista doblemente enlazada o array circular." },
+      { q: "¿Cuál clase de Java NO permite elementos null y es más eficiente para implementar un Deque?",
+        options: ["LinkedList", "ArrayDeque", "HashMap", "TreeSet"],
+        correct: 1,
+        explanation: "ArrayDeque es más rápida que LinkedList y prohíbe null para evitar errores en peek/poll." },
+      { q: "Un Deque se puede usar como...",
+        options: ["Solo como cola", "Solo como pila", "Como pila o como cola, dependiendo de las operaciones que uses", "Como diccionario"],
+        correct: 2,
+        explanation: "Si usás agregarFinal/eliminarInicio → cola FIFO. Si usás agregarFinal/eliminarFinal → pila LIFO. Es la generalización de ambos." },
+      { q: "En el TAD Diccionario (Mapa), ¿qué restricción tienen las claves?",
+        options: ["Son únicas: no puede haber dos pares con la misma clave", "Se pueden repetir", "Deben ser strings", "Deben ser enteros consecutivos"],
+        correct: 0,
+        explanation: "La unicidad de la clave es el invariante principal del diccionario. Los valores sí pueden repetirse." },
+      { q: "¿Qué pasa al hacer insertar(k, v) en un diccionario si la clave k ya existía?",
+        options: ["Lanza error", "Ignora la llamada", "Actualiza el valor asociado a k", "Duplica la entrada"],
+        correct: 2,
+        explanation: "Insertar con una clave existente típicamente actualiza (reemplaza) el valor. No se permite duplicar claves." },
+      { q: "¿Cuál de estas clases de Java implementa un diccionario ordenado por clave?",
+        options: ["HashMap", "TreeMap", "LinkedHashMap", "ArrayList"],
+        correct: 1,
+        explanation: "TreeMap está implementado con un árbol balanceado (red-black) y mantiene las claves ordenadas. HashMap no tiene orden; LinkedHashMap mantiene el orden de inserción." },
+      { q: "¿Cuál es la complejidad promedio de obtener(k) en un HashMap?",
+        options: ["O(1)", "O(log n)", "O(n)", "O(n²)"],
+        correct: 0,
+        explanation: "HashMap usa hashing: la búsqueda es O(1) en promedio. En el peor caso (muchas colisiones) puede degradarse, pero el promedio es constante." },
+      { q: "Si necesitás mantener las claves ordenadas y hacer búsquedas eficientes, ¿qué clase conviene?",
+        options: ["HashMap con O(1)", "TreeMap con O(log n) pero ordenado", "ArrayList", "HashSet"],
+        correct: 1,
+        explanation: "TreeMap sacrifica algo de velocidad (O(log n) en lugar de O(1)) para obtener claves ordenadas. Es el compromiso correcto cuando el orden importa." },
+      { q: "¿Qué aplicación típica tiene un Deque en algoritmos?",
+        options: ["Parsing de JSON", "Búsqueda en profundidad pura", "Historial de navegación (atrás/adelante) y BFS", "Cálculo de hash"],
+        correct: 2,
+        explanation: "El Deque es natural para un historial con dos extremos (atrás/adelante) y para BFS que a veces requiere insertar/sacar por ambos lados (0-1 BFS, etc.)." },
+    ]
+  },
+  {
+    unit: "Clase 6 — TADs del dominio, archivos y JSON",
+    questions: [
+      { q: "¿Qué caracteriza a un 'TAD específico del dominio'?",
+        options: ["Modela entidades concretas de un problema (Cliente, Producto) con datos, operaciones e invariantes propios", "Es siempre una lista", "Solo usa tipos primitivos", "Se implementa como una interfaz"],
+        correct: 0,
+        explanation: "A diferencia de los TDAs generales (lista, pila, cola), los del dominio modelan entidades específicas del problema. Un TAD Producto tiene 'stock no puede ser negativo' como invariante." },
+      { q: "¿Cuál es un invariante razonable para un TAD Producto con precio y stock?",
+        options: ["El precio debe ser positivo y el stock no puede ser negativo", "El precio puede ser cualquier número incluso negativo", "El stock debe ser par", "No tiene invariantes"],
+        correct: 0,
+        explanation: "Precio positivo y stock no negativo son reglas de negocio que deben mantenerse siempre. Violarlas deja al TAD en estado inválido." },
+      { q: "En Java, ¿qué clase se usa para leer líneas de un archivo de texto eficientemente?",
+        options: ["FileWriter", "BufferedReader envolviendo un FileReader", "System.out", "Scanner.system()"],
+        correct: 1,
+        explanation: "FileReader abre el archivo; BufferedReader agrega un buffer y el método readLine() que lee línea por línea eficientemente." },
+      { q: "¿Qué significa el segundo parámetro 'true' en new FileWriter(\"archivo.txt\", true)?",
+        options: ["Habilita compresión", "Modo append: no sobreescribe, agrega al final", "El archivo es de solo lectura", "Encripta el contenido"],
+        correct: 1,
+        explanation: "Pasar true en el segundo argumento activa el modo append. Sin ese flag, cada escritura trunca el archivo." },
+      { q: "En JSON, ¿cuál es la sintaxis correcta para representar un objeto?",
+        options: ["[clave: valor, clave: valor]", "{ \"clave\": valor, \"clave\": valor }", "(clave = valor; clave = valor)", "clave:valor;clave:valor"],
+        correct: 1,
+        explanation: "Los objetos JSON van entre llaves, con pares clave:valor separados por comas. Las claves SIEMPRE van entre comillas dobles." },
+      { q: "¿Qué valores son válidos en JSON?",
+        options: ["Solo strings y números", "String, número, boolean, null, objeto y array", "Solo objetos", "Funciones y clases"],
+        correct: 1,
+        explanation: "JSON admite: string (entre comillas), número, true/false, null, objetos (con {}) y arrays (con [])." },
+      { q: "¿Cómo convierte Gson un archivo JSON en un objeto Java?",
+        options: ["gson.parse(file)", "gson.fromJson(reader, Clase.class)", "new Clase(file)", "JSON.parseObject(file)"],
+        correct: 1,
+        explanation: "gson.fromJson(reader, Sistema.class) usa reflexión para instanciar la clase y mapear cada campo desde el JSON." },
+      { q: "¿Cómo se serializa un objeto Java a JSON con Gson?",
+        options: ["gson.serialize(obj)", "gson.toJson(obj)", "obj.toJson()", "JSON.stringify(obj)"],
+        correct: 1,
+        explanation: "gson.toJson(obj) devuelve un String con la representación JSON del objeto." },
+      { q: "¿Por qué las operaciones de archivo deben ir en try/catch?",
+        options: ["Para que el código se vea más ordenado", "Porque pueden lanzar IOException, una excepción verificada (checked)", "Por una convención del profesor", "No es necesario"],
+        correct: 1,
+        explanation: "IOException es checked: Java obliga a declararla en la firma (throws) o capturarla con try/catch. Sin eso el código no compila." },
+      { q: "¿Qué TDAs generales típicamente se combinan para modelar un Cliente con historial de compras?",
+        options: ["Solo una Pila", "Un TAD del dominio Cliente que internamente usa una Lista de Compra (otro TAD del dominio)", "Solo un String largo", "Un array de int"],
+        correct: 1,
+        explanation: "Los TDAs se combinan: Cliente (dominio) contiene una Lista (general) de Compra (dominio). Saber combinar TDAs es el objetivo del parcial." },
+    ]
+  }
+];
+
+// ---------- Quiz logic ----------
+const STORAGE_KEY = 'tpa2_quiz_progress_v1';
+const root = document.getElementById('quiz-root');
+let state = {}; // { gIdx: { answered, correct, picked } }
+let runtimeData = []; // clones with shuffled options
+
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildRuntime(){
+  runtimeData = [];
+  let gIdx = 0;
+  for (const unit of QUIZ_DATA) {
+    const questions = [];
+    for (const q of unit.questions) {
+      const correctText = q.options[q.correct];
+      const shuffled = shuffle(q.options);
+      const newCorrect = shuffled.indexOf(correctText);
+      questions.push({
+        gIdx: gIdx++,
+        q: q.q,
+        options: shuffled,
+        correct: newCorrect,
+        explanation: q.explanation
+      });
+    }
+    runtimeData.push({ unit: unit.unit, questions });
+  }
+}
+
+function totalQuestions(){
+  return runtimeData.reduce((acc, u) => acc + u.questions.length, 0);
+}
+
+function loadState(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = JSON.parse(raw);
+  } catch (e) { state = {}; }
+}
+
+function saveState(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+function render(){
+  root.innerHTML = '';
+  const letters = ['A','B','C','D','E','F'];
+
+  runtimeData.forEach((unit, uIdx) => {
+    const section = document.createElement('section');
+    section.className = 'unit-section';
+
+    const answered = unit.questions.filter(q => state[q.gIdx] && state[q.gIdx].answered).length;
+    const correct = unit.questions.filter(q => state[q.gIdx] && state[q.gIdx].correct).length;
+
+    const header = document.createElement('div');
+    header.className = 'unit-section-title';
+    header.innerHTML = `
+      <span class="label"><span>${unit.unit}</span></span>
+      <span class="counter">${correct}/${answered} · ${unit.questions.length} preguntas</span>
+      <span class="toggle-icon">▼</span>
+    `;
+    header.addEventListener('click', () => section.classList.toggle('collapsed'));
+    section.appendChild(header);
+
+    const list = document.createElement('div');
+    list.className = 'question-list';
+
+    unit.questions.forEach((q, qIdx) => {
+      const card = document.createElement('div');
+      card.className = 'question-card';
+      card.id = 'q-' + q.gIdx;
+      card.innerHTML = `
+        <div class="q-number">Pregunta ${q.gIdx + 1}</div>
+        <div class="q-text">${q.q}</div>
+        <div class="options"></div>
+        <div class="feedback"></div>
+        <div class="explanation"><strong>Explicación:</strong> ${q.explanation}</div>
+      `;
+      const optsDiv = card.querySelector('.options');
+      q.options.forEach((opt, oIdx) => {
+        const o = document.createElement('div');
+        o.className = 'option';
+        o.innerHTML = `<span class="option-letter">${letters[oIdx]}</span><span class="option-text">${opt}</span>`;
+        o.addEventListener('click', () => pick(q.gIdx, uIdx, qIdx, oIdx));
+        optsDiv.appendChild(o);
+      });
+
+      list.appendChild(card);
+    });
+
+    section.appendChild(list);
+    root.appendChild(section);
+  });
+
+  // Re-apply state to UI
+  runtimeData.forEach(unit => {
+    unit.questions.forEach(q => {
+      if (state[q.gIdx] && state[q.gIdx].answered) {
+        applyAnswered(q);
+      }
+    });
+  });
+
+  updateScore();
+}
+
+function pick(gIdx, uIdx, qIdx, oIdx){
+  if (state[gIdx] && state[gIdx].answered) return;
+  const q = runtimeData[uIdx].questions[qIdx];
+  const isCorrect = oIdx === q.correct;
+  state[gIdx] = { answered: true, correct: isCorrect, picked: oIdx };
+  saveState();
+  applyAnswered(q, oIdx);
+  updateScore();
+  updateUnitCounters();
+}
+
+function applyAnswered(q, pickedIdx){
+  const card = document.getElementById('q-' + q.gIdx);
+  if (!card) return;
+  const picked = pickedIdx !== undefined ? pickedIdx : (state[q.gIdx] && state[q.gIdx].picked);
+  const options = card.querySelectorAll('.option');
+  options.forEach((o, i) => {
+    o.classList.add('disabled');
+    if (i === q.correct) o.classList.add('correct-answer');
+    else if (i === picked) o.classList.add('wrong-answer');
+  });
+  const isCorrect = picked === q.correct;
+  card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+  const fb = card.querySelector('.feedback');
+  fb.textContent = isCorrect ? '✓ ¡Correcto!' : '✗ Incorrecto';
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  card.querySelector('.explanation').classList.add('show');
+}
+
+function updateScore(){
+  const total = totalQuestions();
+  let correct = 0, wrong = 0;
+  for (const key in state) {
+    if (state[key].answered) {
+      if (state[key].correct) correct++;
+      else wrong++;
+    }
+  }
+  const pending = total - correct - wrong;
+  document.getElementById('score-correct').textContent = correct;
+  document.getElementById('score-wrong').textContent = wrong;
+  document.getElementById('score-pending').textContent = pending;
+  document.getElementById('score-total').textContent = total;
+}
+
+function updateUnitCounters(){
+  // Rebuild unit counters without full render
+  document.querySelectorAll('.unit-section').forEach((sec, uIdx) => {
+    const unit = runtimeData[uIdx];
+    const answered = unit.questions.filter(q => state[q.gIdx] && state[q.gIdx].answered).length;
+    const correct = unit.questions.filter(q => state[q.gIdx] && state[q.gIdx].correct).length;
+    sec.querySelector('.counter').textContent = `${correct}/${answered} · ${unit.questions.length} preguntas`;
+  });
+}
+
+function revealAll(){
+  runtimeData.forEach(unit => {
+    unit.questions.forEach(q => {
+      if (!state[q.gIdx] || !state[q.gIdx].answered) {
+        state[q.gIdx] = { answered: true, correct: true, picked: q.correct };
+      }
+    });
+  });
+  saveState();
+  render();
+}
+
+function resetAll(){
+  if (!confirm('¿Seguro que querés reiniciar todo el quiz? Se borrará tu progreso.')) return;
+  state = {};
+  localStorage.removeItem(STORAGE_KEY);
+  buildRuntime();
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('btn-reveal').addEventListener('click', revealAll);
+document.getElementById('btn-reset').addEventListener('click', resetAll);
+
+buildRuntime();
+loadState();
+render();
+</script>
+<script src="/cuestionario/assets/nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exposición · Arquitectura · AyED II</title>
+<link rel="stylesheet" href="/cuestionario/assets/estudio.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/cuestionario">
+    <span class="brand-icon">AyED</span>
+    <span>AyED II <span class="brand-sub">· UADE 3.4.229 · 2026-1C</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/cuestionario">🏠 Inicio</a>
+    <a class="nav-link" href="/cuestionario/quiz">📝 Quiz</a>
+    <a class="nav-link" href="/cuestionario/resumenes">📚 Resúmenes</a>
+    <a class="nav-link active" href="/cuestionario/exposicion">🎤 Exposición</a>
+    <a class="nav-link" href="/">🚚 TPO</a>
+    <button id="theme-toggle" class="theme-toggle" type="button">Modo claro</button>
+  </div>
+</nav>
+
+<div class="container-narrow">
+
+  <header class="summary-header">
+    <span class="eyebrow">Exposición grupal · 6 partes · ~50 min</span>
+    <h1>Defensa de la arquitectura</h1>
+    <p class="lead">
+      Una exposición narrativa capa por capa: de la consigna al código. El orden importa —
+      cada persona prepara a la siguiente. Cada parte incluye objetivo, talking points,
+      código de referencia y preguntas probables del jurado.
+    </p>
+    <div class="tags">
+      <span class="badge">1 pto (rúbrica)</span>
+      <span class="badge">6 personas</span>
+      <span class="badge">Arquitectura en capas</span>
+      <span class="badge">Conceptos aplicados</span>
+    </div>
+  </header>
+
+  <div class="info-box">
+    <h3>Índice</h3>
+    <ol>
+      <li><a href="#parte-1">Parte 1 — Persona A · Dominio &amp; arquitectura general</a></li>
+      <li><a href="#parte-2">Parte 2 — Persona B · Modelo + Persistencia</a></li>
+      <li><a href="#parte-3">Parte 3 — Persona C · TDAs como núcleo</a></li>
+      <li><a href="#parte-4">Parte 4 — Persona D · Capa de servicio</a></li>
+      <li><a href="#parte-5">Parte 5 — Persona E · Presentación (CLI + Web + SPA)</a></li>
+      <li><a href="#parte-6">Parte 6 — Persona F · Calidad, build y cierre</a></li>
+    </ol>
+  </div>
+
+  <!-- =============== PARTE 1 =============== -->
+  <section class="summary-section" id="parte-1">
+    <h2><span class="sec-num">1</span> Dominio &amp; arquitectura general — Persona A · ~6 min</h2>
+
+    <div class="callout">
+      <strong>Objetivo:</strong> Ubicar al jurado. Del problema del negocio al diagrama de 5 capas. Prepara el terreno para los 5 siguientes.
+    </div>
+
+    <h3>Talking points</h3>
+    <ul>
+      <li><strong>El problema.</strong> Una empresa de logística nacional necesita modernizar la gestión de despachos y depósitos. El objetivo no es solo funcionar: la eficiencia algorítmica <em>es</em> el requisito.</li>
+      <li><strong>Dos iteraciones.</strong> I1 (Gestión de Carga y Despacho, entrega 24/04/2026): paquete genérico, camión, centro de distribución, persistencia JSON. I2 (Depósitos y Rutas, entrega 26/06/2026): ABB manual y grafo con distancia mínima.</li>
+      <li><strong>Mapeo consigna → código.</strong> Cada requerimiento tiene un TDA: <code>Paquete&lt;T&gt;</code> (genérico), <code>Camion</code> (pila), <code>CentroDistribucion</code> (cola prioritaria), <code>ArbolDepositos</code> (ABB manual), <code>GrafoDepositos</code> (lista de adyacencia + Dijkstra).</li>
+      <li><strong>Arquitectura en 5 capas.</strong> <code>model/</code> (entidades puras) → <code>structures/</code> (TDAs) → <code>persistence/</code> (JSON casero) → <code>service/</code> (orquestador único) → <code>cli/ + web/</code> (dos entry points).</li>
+      <li><strong>Dual entry-point.</strong> <code>Main</code> routea según argumentos: <code>--cli</code> arranca el menú de consola; sin argumentos o <code>--port N</code> levanta el servidor web (default <code>7070</code>, bindea <code>0.0.0.0</code>).</li>
+      <li><strong>Zero dependencias externas.</strong> Solo Java 21 + JDK + JUnit standalone para tests. Sin Maven, Gradle, Jackson, Javalin, Spring. Decisión explícita, no accidente.</li>
+      <li><strong>Cierre.</strong> "Mi compañero B va a entrar en la capa más profunda: el modelo y la persistencia."</li>
+    </ul>
+
+    <h3>Código de referencia</h3>
+    <ul class="code-refs">
+      <li><code>src/main/java/ar/edu/uade/logistica/Main.java</code> — entry point; elige entre CLI y Web según argumentos.</li>
+      <li><code>CLAUDE.md</code> sección "Arquitectura" — descripción oficial de las 5 capas.</li>
+      <li><code>Consigna.pdf</code> páginas 2-3 — requerimientos generales.</li>
+    </ul>
+
+    <h3>Cita literal de la consigna</h3>
+    <blockquote>
+      "El objetivo es construir una solución robusta donde la <strong>eficiencia algorítmica</strong> sea el factor determinante para el éxito del proyecto." <em>(Consigna §1)</em>
+    </blockquote>
+
+    <h3>Preguntas probables del jurado</h3>
+    <dl class="qa">
+      <dt>¿Por qué no usaron Maven o Gradle?</dt>
+      <dd>La consigna fija Java 21 puro y la evaluación es en vivo. Cero dependencias externas nos permite compilar con <code>javac -d out</code> y correr sin conexión a internet. El único jar externo es JUnit standalone, y vive en <code>lib/</code>.</dd>
+      <dt>¿Cuántas clases tiene el proyecto?</dt>
+      <dd>Cerca de 15 clases Java distribuidas en 5 paquetes. Cada paquete es una capa con una responsabilidad única.</dd>
+      <dt>¿Por qué dos entry points (CLI y Web)?</dt>
+      <dd>La consigna exige un menú para carga manual de datos (CLI cubre eso). La web es un plus para demostrar el sistema de forma visual sin renunciar al menú. Ambos entry points usan el mismo <code>LogisticaService</code>: no hay lógica duplicada.</dd>
+    </dl>
+  </section>
+
+  <!-- =============== PARTE 2 =============== -->
+  <section class="summary-section" id="parte-2">
+    <h2><span class="sec-num">2</span> Modelo + Persistencia — Persona B · ~8 min</h2>
+
+    <div class="callout">
+      <strong>Objetivo:</strong> Defender las entidades puras del dominio, el genérico <code>Paquete&lt;T&gt;</code> y el parser JSON hecho a mano.
+    </div>
+
+    <h3>Talking points</h3>
+    <ul>
+      <li><strong>Capa <code>model/</code>.</strong> Contiene las entidades del dominio: <code>Paquete&lt;T&gt;</code>, <code>Deposito</code>, <code>Ruta</code>, <code>Inventario</code>. Son clases <em>puras</em>: no conocen TDAs, no hacen I/O, no dependen del Service.</li>
+      <li><strong>Generics en acción.</strong> <code>Paquete&lt;T&gt;</code> permite que el contenido sea cualquier tipo (<code>Electronica</code>, <code>Alimentos</code>, <code>Fragiles</code> según la consigna). Type-safe en compilación — no hay casteos al sacar del camión.</li>
+      <li><strong>Inmutabilidad.</strong> Todos los campos son <code>final</code>. Los getters devuelven los valores directos; <code>Inventario</code> usa <code>List.copyOf()</code> en el constructor para congelar las colecciones. Una vez construido, no muta.</li>
+      <li><strong>Reglas de negocio en el modelo.</strong> <code>Paquete.requierePrioridad()</code> encapsula "urgente o peso &gt; 50 kg". Esa regla vive una sola vez, en el modelo. Nadie más la calcula.</li>
+      <li><strong>Persistencia casera.</strong> <code>SimpleJsonParser</code> es un parser recursivo de ~150 líneas; no depende de Jackson ni Gson. Soporta objetos anidados, arrays, strings, números y booleans — lo que la consigna pide.</li>
+      <li><strong>Carga inicial.</strong> <code>InventarioLoader</code> lee <code>data/inventario.json</code>, lo parsea con <code>SimpleJsonParser</code> y construye un <code>Inventario</code> inmutable. Ese <code>Inventario</code> alimenta los 4 TDAs al iniciar.</li>
+      <li><strong>El frontend no duplica reglas.</strong> La UI marca un paquete como "Urgente" mirando el campo <code>prioritario</code> que envía el backend. No calcula <code>peso &gt; 50</code> localmente. Regla dura del proyecto.</li>
+    </ul>
+
+    <h3>Código de referencia</h3>
+    <ul class="code-refs">
+      <li><code>src/main/java/ar/edu/uade/logistica/model/Paquete.java</code> — clase genérica <code>Paquete&lt;T&gt;</code> + <code>requierePrioridad()</code>.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/model/Inventario.java</code> — getters con <code>List.copyOf()</code>.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/persistence/SimpleJsonParser.java</code> — parser recursivo manual.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/persistence/InventarioLoader.java</code> — carga inicial desde <code>data/inventario.json</code>.</li>
+    </ul>
+
+    <h3>Cita literal de la consigna</h3>
+    <blockquote>
+      "Implementar un TDA genérico <code>Paquete&lt;T&gt;</code> que permita transportar distintos tipos de contenido (ej. <code>Electronica</code>, <code>Alimentos</code>, <code>Fragiles</code>). Cada paquete tiene un ID único, un peso y un destino." <em>(Consigna §Iteración 1.A)</em>
+      <br><br>
+      "Persistencia: Carga inicial desde archivos JSON." <em>(Consigna §2)</em>
+    </blockquote>
+
+    <h3>Preguntas probables del jurado</h3>
+    <dl class="qa">
+      <dt>¿Por qué <code>Paquete&lt;T&gt;</code> y no <code>Paquete</code> con <code>Object</code>?</dt>
+      <dd>Generics nos da type-safety en compilación. Si declaramos <code>Paquete&lt;Electronica&gt;</code>, el compilador nos impide pasar un <code>Alimento</code>. Con <code>Object</code> tendríamos que castear al sacar, y un error de destino recién aparecería en runtime.</dd>
+      <dt>¿El parser soporta arrays anidados y estructuras complejas?</dt>
+      <dd>Sí. <code>SimpleJsonParser</code> es recursivo: un objeto puede contener otros objetos o arrays en cualquier nivel. Está testeado contra <code>data/inventario.json</code> que tiene <code>paquetes</code>, <code>depositos</code> y <code>rutas</code> como arrays de objetos.</dd>
+      <dt>¿Qué pasa si el JSON trae un campo que el código no espera?</dt>
+      <dd>Lo ignora — el parser es tolerante a campos extra. Lo que no perdona es la <em>ausencia</em> de un campo requerido: tira <code>IllegalArgumentException</code> al construir la entidad.</dd>
+    </dl>
+  </section>
+
+  <!-- =============== PARTE 3 =============== -->
+  <section class="summary-section" id="parte-3">
+    <h2><span class="sec-num">3</span> TDAs como núcleo — Persona C · ~8 min</h2>
+
+    <div class="callout">
+      <strong>Objetivo:</strong> Presentar los 4 TDAs a alto nivel y cómo se conectan al dominio. La justificación teórica profunda va en la otra exposición — acá es la vista de arquitectura.
+    </div>
+
+    <h3>Talking points</h3>
+    <ul>
+      <li><strong>4 TDAs, uno por requerimiento.</strong> La consigna los nombra explícitamente. No inventamos: ejecutamos lo que pide.</li>
+      <li><strong><code>Camion</code> (Pila LIFO).</strong> El camión físico: el último paquete que cargamos es el primero en bajar. Soporta <code>deshacerUltimaCarga()</code> en <code>O(1)</code>.</li>
+      <li><strong><code>CentroDistribucion</code> (Cola Prioritaria).</strong> La bandeja de entrada del sistema: paquetes urgentes o con peso mayor a 50 kg se procesan antes. Desempate FIFO por orden de llegada.</li>
+      <li><strong><code>ArbolDepositos</code> (ABB manual).</strong> Los depósitos se organizan jerárquicamente por ID numérico. El requerimiento clave es auditar en post-orden y reportar por nivel.</li>
+      <li><strong><code>GrafoDepositos</code> (lista de adyacencia + Dijkstra).</strong> Las rutas entre depósitos. Peso en km (no saltos) → Dijkstra.</li>
+      <li><strong>Flujo típico.</strong> Un paquete llega al centro → se encola por prioridad → se despacha al camión (cima de la pila) → al llegar al destino, se descarga.</li>
+      <li><strong>Los 4 TDAs coexisten.</strong> Paquete vive en el centro o en el camión; depósito vive en el ABB <em>y</em> es referenciado por id en el grafo. Nada está duplicado.</li>
+      <li><strong>Complejidad documentada.</strong> Cada método público lleva <code>@implNote Complejidad: O(...) tiempo / O(...) espacio</code> en el Javadoc. Eso es lo que cierra F al final.</li>
+      <li><strong>Cierre.</strong> "La justificación <em>teórica</em> — por qué pila y no lista, por qué Dijkstra y no BFS — la vas a ver en la otra defensa."</li>
+    </ul>
+
+    <h3>Código de referencia</h3>
+    <ul class="code-refs">
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/Camion.java:24</code> — <code>public class Camion</code>.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/CentroDistribucion.java:28</code> — <code>public class CentroDistribucion</code>.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/ArbolDepositos.java:24</code> — <code>public class ArbolDepositos</code>.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/GrafoDepositos.java:27</code> — <code>public class GrafoDepositos</code>.</li>
+    </ul>
+
+    <h3>Preguntas probables del jurado</h3>
+    <dl class="qa">
+      <dt>¿Cómo interactúan los 4 TDAs entre sí?</dt>
+      <dd>El Service los orquesta: recibir un paquete va al centro (cola prioritaria), procesar y cargar en camión va de centro a pila, y los métodos de auditoría / ruta mínima consultan el ABB y el grafo. No hay comunicación directa entre TDAs — todo pasa por el Service.</dd>
+      <dt>¿Un mismo depósito está duplicado entre el ABB y el grafo?</dt>
+      <dd>No. El ABB indexa depósitos por <code>id</code>; el grafo tiene nodos que también son <code>id</code>s y aristas entre ellos. La entidad canónica <code>Deposito</code> vive una sola vez y se accede por id.</dd>
+      <dt>¿Por qué 4 TDAs y no uno solo más general?</dt>
+      <dd>La consigna pide explícitamente pila, cola prioritaria, ABB y grafo como estructuras separadas. Cada una se evalúa en teoría. Unificarlas sería perder el objetivo pedagógico de la materia.</dd>
+    </dl>
+  </section>
+
+  <!-- =============== PARTE 4 =============== -->
+  <section class="summary-section" id="parte-4">
+    <h2><span class="sec-num">4</span> Capa de servicio — Persona D · ~8 min</h2>
+
+    <div class="callout">
+      <strong>Objetivo:</strong> Defender <code>LogisticaService</code> como Facade — único punto de entrada al dominio — y la estrategia de concurrencia.
+    </div>
+
+    <h3>Talking points</h3>
+    <ul>
+      <li><strong>Patrón Facade.</strong> <code>LogisticaService</code> es el único lugar donde se coordinan los 4 TDAs. CLI y Web no tocan los TDAs directamente: le hablan al Service.</li>
+      <li><strong>Sin Service, habría duplicación.</strong> Si CLI y Web implementaran la lógica por separado, "cargar el siguiente paquete al camión" estaría escrito dos veces. Con Service, se escribe una sola vez y se testea una sola vez.</li>
+      <li><strong>Métodos principales.</strong> <code>cargarInventario(Path)</code>, <code>crearPaqueteManual(...)</code>, <code>procesarSiguienteEnCentro()</code>, <code>cargarEnCamion(Paquete)</code>, <code>deshacerUltimaCargaCamion()</code>, <code>descargarCamion()</code>, <code>auditarDepositos(LocalDateTime)</code>, <code>listarDepositos()</code>, <code>depositosPorNivel(int)</code>, <code>distanciaMinimaEntreDepositos(int,int)</code>.</li>
+      <li><strong>Concurrencia.</strong> <code>com.sun.net.httpserver.HttpServer</code> ejecuta cada request en un worker thread. Los TDAs no son thread-safe internamente.</li>
+      <li><strong>Decisión: lock externo.</strong> <code>WebServer</code> envuelve toda mutación con <code>synchronized (service)</code>. Así el Service queda libre de ruido de concurrencia — es código sencillo y testable.</li>
+      <li><strong>Singleton por proceso.</strong> Una JVM = un <code>LogisticaService</code>. Se construye al arrancar y se comparte entre todos los handlers del HttpServer. El estado vive en memoria, no en archivos.</li>
+      <li><strong>Dependencia invertida.</strong> Service no sabe nada de HTTP ni de consolas. CLI y Web <em>dependen</em> del Service; el Service no depende de ellos.</li>
+    </ul>
+
+    <h3>Código de referencia</h3>
+    <ul class="code-refs">
+      <li><code>src/main/java/ar/edu/uade/logistica/service/LogisticaService.java</code> — la fachada.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/web/WebServer.java</code> — <code>synchronized (service)</code> alrededor de cada mutación.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/cli/MenuConsola.java</code> — consumidor single-threaded del Service.</li>
+    </ul>
+
+    <h3>Preguntas probables del jurado</h3>
+    <dl class="qa">
+      <dt>¿Por qué el lock está afuera y no dentro del Service?</dt>
+      <dd>Para mantener al Service libre de detalles de concurrencia. <code>WebServer</code> es quien <em>sabe</em> que hay threads paralelos — es su responsabilidad serializarlos. CLI no concurre (un solo main loop bloqueante), así que ahí el lock sería gasto puro. La responsabilidad queda donde corresponde.</dd>
+      <dt>¿Podría haber una race condition si dos requests llegan al mismo tiempo?</dt>
+      <dd>No. El <code>synchronized (service)</code> serializa toda mutación: uno espera al otro. El resultado es consistente con el orden en que entraron al lock.</dd>
+      <dt>¿Qué tan granular es el lock? ¿No bloquea demasiado?</dt>
+      <dd>Es un lock único sobre el Service. Para el scope del TPO con tráfico académico, es más que suficiente y mucho más simple que un lock por TDA. Si alguna vez escalara, se podría granular — pero hoy sería sobre-ingeniería.</dd>
+    </dl>
+  </section>
+
+  <!-- =============== PARTE 5 =============== -->
+  <section class="summary-section" id="parte-5">
+    <h2><span class="sec-num">5</span> Presentación — CLI + Web + SPA — Persona E · ~10 min</h2>
+
+    <div class="callout">
+      <strong>Objetivo:</strong> Defender la capa más visible: los dos entry points, el API REST hecho sin frameworks, y la regla "la lógica vive en Java, no en JS".
+    </div>
+
+    <h3>Talking points</h3>
+    <ul>
+      <li><strong>Dual entry-point.</strong> <code>Main</code> inspecciona los argumentos: <code>--cli</code> arranca <code>MenuConsola</code>; sin argumentos o <code>--port N</code>, arranca <code>WebServer</code> en el puerto indicado (default 7070).</li>
+      <li><strong>CLI: menú clásico.</strong> <code>MenuConsola</code> imprime un menú numerado en la consola, lee opciones con <code>Scanner</code> y delega al Service. Zero networking, zero HTML. Útil para el profe que quiera verlo sin browser.</li>
+      <li><strong>Web: <code>HttpServer</code> del JDK.</strong> La clase <code>com.sun.net.httpserver.HttpServer</code> ya viene en Java. Crea contextos (<code>server.createContext("/api/estado", ...)</code>) y despacha requests sin frameworks.</li>
+      <li><strong>12 endpoints REST.</strong> <code>POST /api/inventario/cargar</code>, <code>GET /api/estado</code>, <code>GET/POST /api/centro/paquetes</code>, <code>POST /api/camion/cargar|deshacer|descargar</code>, <code>GET /api/camion</code>, <code>POST /api/depositos/auditar</code>, <code>GET /api/depositos</code>, <code>GET /api/depositos/nivel/{n}</code>, <code>GET /api/depositos/{id}</code>, <code>GET /api/rutas</code>, <code>GET /api/rutas/distancia</code>.</li>
+      <li><strong>Manejo de errores.</strong> Excepciones de dominio (<code>IllegalArgumentException</code>, <code>IllegalStateException</code>, <code>NoSuchElementException</code>) → <code>400</code> con body JSON <code>{"error": "..."}</code>. Cualquier otra excepción → <code>500</code>.</li>
+      <li><strong><code>JsonWriter</code> casero.</strong> Escribe objetos, arrays y primitivos a JSON. Simétrico con <code>SimpleJsonParser</code>. Sin Jackson, sin Gson.</li>
+      <li><strong>Front-end: HTML + Tailwind CDN + JS vanilla.</strong> <code>src/main/resources/web/index.html</code> es un SPA con ruteo por hash. <code>app.js</code> hace <code>fetch()</code> contra <code>/api/*</code> y renderiza el DOM.</li>
+      <li><strong>Regla dura: cero lógica en JS.</strong> El frontend no recalcula <code>peso &gt; 50</code>; no replica reglas de auditoría. Solo <code>fetch()</code> + render. Si algo calcula en JS, está mal.</li>
+      <li><strong>Demo sugerida en vivo.</strong> (1) cargar inventario desde la UI, (2) procesar siguiente paquete (el urgente sale primero), (3) consultar distancia mínima entre dos depósitos.</li>
+    </ul>
+
+    <h3>Código de referencia</h3>
+    <ul class="code-refs">
+      <li><code>src/main/java/ar/edu/uade/logistica/Main.java</code> — routing <code>--cli</code> vs web.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/cli/MenuConsola.java</code> — menú de consola.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/web/WebServer.java</code> — <code>HttpServer</code>, handlers REST, handler estático.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/web/JsonWriter.java</code> — serializador manual.</li>
+      <li><code>src/main/resources/web/index.html</code> + <code>app.js</code> — SPA del TPO.</li>
+      <li><code>CLAUDE.md</code> sección "API REST" — tabla completa de endpoints.</li>
+    </ul>
+
+    <h3>Preguntas probables del jurado</h3>
+    <dl class="qa">
+      <dt>¿Por qué no usaron Spring Boot o Javalin?</dt>
+      <dd>Dos razones. Primero, la consigna premia soluciones con cero dependencias externas. Segundo, <code>com.sun.net.httpserver.HttpServer</code> viene en la JDK y cubre el caso de uso perfecto: rutas, handlers, streams. Agregar un framework sería over-engineering.</dd>
+      <dt>¿Tailwind no es una dependencia externa?</dt>
+      <dd>Es un CDN que carga el browser del usuario cuando abre la UI. No afecta al build de Java ni al jar final. Si se desactivara el CDN, la UI perdería estilos pero el backend seguiría funcionando. No es una dep de nuestro código — es una dep de la presentación visual.</dd>
+      <dt>¿Por qué un <code>JsonWriter</code> si ya hay un <code>SimpleJsonParser</code>?</dt>
+      <dd>El parser solo lee JSON. Para serializar respuestas HTTP necesitamos escribirlo. Son simétricos: uno parsea strings a objetos Java, el otro hace el camino inverso. Ambos viven en ~150 líneas cada uno.</dd>
+    </dl>
+  </section>
+
+  <!-- =============== PARTE 6 =============== -->
+  <section class="summary-section" id="parte-6">
+    <h2><span class="sec-num">6</span> Calidad, build y cierre — Persona F · ~8 min</h2>
+
+    <div class="callout">
+      <strong>Objetivo:</strong> Cerrar defendiendo eficiencia documentada (30% de la nota), testing, build sin Maven, Docker y documentación interna.
+    </div>
+
+    <h3>Talking points</h3>
+    <ul>
+      <li><strong>Complejidad documentada.</strong> Cada método público de los TDAs tiene un comentario <code>Complejidad: O(...) tiempo / O(...) espacio</code> en el Javadoc. No es decorativo: la rúbrica pesa <strong>30% en Eficiencia</strong>.</li>
+      <li><strong>Ejemplos concretos del proyecto.</strong> <code>Camion.cargar()</code> → <code>O(1)</code> amortizado. <code>CentroDistribucion.procesarSiguiente()</code> → <code>O(log n)</code>. <code>ArbolDepositos.buscar(id)</code> → <code>O(log n)</code> promedio. <code>GrafoDepositos.distanciaMinima()</code> → <code>O((V+E) log V)</code>.</li>
+      <li><strong>Tests con JUnit 5 standalone.</strong> Un solo jar en <code>lib/</code> (<code>junit-platform-console-standalone-1.11.3.jar</code>). Sin Maven, sin dependencias transitivas.</li>
+      <li><strong>Cómo se corren los tests.</strong>
+        <pre><code>javac -cp "out:lib/junit-platform-console-standalone-1.11.3.jar" -d out-test \
+  $(find src/test/java -name "*.java")
+java -jar lib/junit-platform-console-standalone-1.11.3.jar execute \
+  -cp "out:out-test" --scan-classpath --disable-banner</code></pre>
+      </li>
+      <li><strong>Un test por TDA principal.</strong> <code>CamionTest</code> (incluye <code>deshacer_devuelve_paquete_tope</code>), <code>CentroDistribucionTest</code>, <code>ArbolDepositosTest</code>, <code>GrafoDepositosTest</code>, <code>SimpleJsonParserTest</code>.</li>
+      <li><strong>Build sin Maven.</strong> <code>javac -d out $(find src/main/java -name "*.java")</code> + <code>cp -r src/main/resources/web out/</code>. Listo. El binario son clases y estáticos en <code>out/</code>.</li>
+      <li><strong>Deploy con Docker.</strong> <code>Dockerfile</code> multi-stage compila en JDK y corre en JRE; <code>docker-compose up -d --build</code> en puerto 7070. Reproducible en cualquier máquina.</li>
+      <li><strong>Documentación interna.</strong> <code>README.md</code> (overview), <code>FLUJOS.md</code> (10 casos de uso con backend/TDA), <code>PRUEBAS.md</code> (verificación end-to-end manual), <code>CLAUDE.md</code> (convenciones y landmines).</li>
+      <li><strong>Plus: <code>/cuestionario</code>.</strong> El mismo server expone material de estudio (resúmenes, quiz, esta exposición). Mostrar que todo vive bajo el mismo <code>WebServer</code>.</li>
+      <li><strong>Cierre de la exposición.</strong> "La arquitectura no es un conjunto de decisiones aisladas: cada una es defendible desde la consigna + complejidad documentada + tests."</li>
+    </ul>
+
+    <h3>Código de referencia</h3>
+    <ul class="code-refs">
+      <li><code>src/test/java/ar/edu/uade/logistica/structures/CamionTest.java</code> — ejemplo de test unitario.</li>
+      <li><code>Dockerfile</code> + <code>docker-compose.yml</code> — build multi-stage y deploy.</li>
+      <li><code>README.md</code>, <code>FLUJOS.md</code>, <code>PRUEBAS.md</code>, <code>CLAUDE.md</code> — documentación interna.</li>
+      <li>Cualquier TDA — <code>@implNote Complejidad</code> documentado en Javadoc.</li>
+    </ul>
+
+    <h3>Cita literal de la consigna</h3>
+    <blockquote>
+      "<strong>Análisis:</strong> Documentación de la complejidad temporal y espacial de cada operación principal (O(1), O(n), O(log n))." <em>(Consigna §2)</em>
+      <br><br>
+      "<strong>Eficiencia (30%):</strong> Las operaciones críticas (búsquedas, consultas, etc.) deben tener una complejidad temporal y espacial óptima." <em>(Consigna §3)</em>
+      <br><br>
+      "<strong>Pruebas Unitarias (10%):</strong> Debe incluir un conjunto de pruebas unitarias que cubran los casos principales." <em>(Consigna §3)</em>
+    </blockquote>
+
+    <h3>Preguntas probables del jurado</h3>
+    <dl class="qa">
+      <dt>¿Por qué JUnit standalone y no Maven?</dt>
+      <dd>Consistente con la política de cero dependencias externas. Un solo jar en <code>lib/</code> alcanza: compila, corre y reporta. Sin resolver un POM, sin descargar transitivas, sin necesidad de red.</dd>
+      <dt>¿Qué cobertura tienen los tests?</dt>
+      <dd>Un test por TDA principal y uno para el parser. No está medido con JaCoCo porque no es requisito de la consigna. Los tests cubren los casos felices y los bordes típicos (pila vacía, cola vacía, árbol con un nodo, grafo desconectado).</dd>
+      <dt>¿Cómo se despliega el sistema en producción?</dt>
+      <dd><code>docker compose up -d --build</code>. El <code>Dockerfile</code> es multi-stage: primera etapa compila con <code>openjdk-21-jdk</code>, segunda etapa corre con JRE. El contenedor expone <code>7070</code> y monta <code>data/</code> y <code>clases/</code> como volúmenes.</dd>
+    </dl>
+  </section>
+
+  <nav class="prev-next">
+    <a class="prev" href="/cuestionario/exposicion">
+      <span class="nav-label">← Volver</span>
+      <span class="nav-title">Hub de exposiciones</span>
+    </a>
+    <a class="next" href="/cuestionario/exposicion/teorica">
+      <span class="nav-label">Siguiente →</span>
+      <span class="nav-title">Defensa teórica (TDAs)</span>
+    </a>
+  </nav>
+
+</div>
+
+<script src="/cuestionario/assets/nav.js"></script>
+</body>
+</html>

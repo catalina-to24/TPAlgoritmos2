@@ -1,8 +1,9 @@
 # Resultado de pruebas manuales — Logi-UADE 2026
 
-Pruebas end-to-end de la UI web ejecutadas sobre `http://localhost:7070/` con Chromium (Playwright MCP, modo headed sobre RDP `DISPLAY=:10.0`). Los screenshots viven en `tmp/pruebas-ui/`.
+Pruebas end-to-end de la UI web ejecutadas sobre **`https://logistica.opendata.com.ar/`** (tunel Cloudflare) con Chromium (Playwright MCP, modo headed sobre RDP `DISPLAY=:10.0`). Los screenshots viven en `tmp/pruebas-ui/`.
 
-- **Entorno**: `java -cp out ar.edu.uade.logistica.Main` (servidor HTTP JDK, puerto 7070) corriendo en una sesion tmux (`logiuade`).
+- **Entorno**: `java -cp out ar.edu.uade.logistica.Main` (servidor HTTP JDK, puerto 7070) corriendo en una sesion tmux (`logiuade`), expuesto publicamente via `cloudflared` detras de `logistica.opendata.com.ar`.
+- **Cache**: el `StaticHandler` envia `Cache-Control: no-store, must-revalidate` para que Cloudflare no cachee HTML/JS/CSS. Las URLs de assets en `index.html` llevan `?v=2` como cache-bust.
 - **Dataset**: `data/inventario.json` — 3 paquetes, 6 depositos, 6 rutas.
 - **Fecha de ejecucion**: 2026-04-11.
 - **UI**: SPA con sidebar, ruteo por hash. 6 vistas (`#/inicio`, `#/paquetes`, `#/camion`, `#/depositos`, `#/rutas`, `#/guia`).
@@ -202,27 +203,27 @@ Ver `FLUJOS.md` para la descripcion funcional de cada flujo.
 
 **Resultado: ✅ PASS** (testeado via `curl`).
 
-El endpoint `GET /api/depositos/nivel/{n}` existe por requisito de la consigna (BFS sobre el ABB) pero no aparece en la UI de produccion. Verificado por CLI:
+El endpoint `GET /api/depositos/nivel/{n}` existe por requisito de la consigna (BFS sobre el ABB) pero no aparece en la UI de produccion. Verificado por CLI atravesando el tunel de Cloudflare:
 
 ```bash
-$ curl -s http://localhost:7070/api/depositos/nivel/0
-{"nivel":0,"depositos":[{"id":50,"nombre":"Hub Central Buenos Aires","visitado":true,"fechaUltimaAuditoria":"2026-01-10T09:00"}]}
+$ curl -s https://logistica.opendata.com.ar/api/depositos/nivel/0
+{"depositos":[{"id":50,"nombre":"Hub Central Buenos Aires","visitado":true,"fechaUltimaAuditoria":"2026-01-10T09:00"}],"nivel":0}
 
-$ curl -s http://localhost:7070/api/depositos/nivel/1
-{"nivel":1,"depositos":[
+$ curl -s https://logistica.opendata.com.ar/api/depositos/nivel/1
+{"depositos":[
   {"id":20,"nombre":"Deposito Cordoba","visitado":false,...},
   {"id":80,"nombre":"Deposito Mendoza","visitado":true,...}
-]}
+],"nivel":1}
 
-$ curl -s http://localhost:7070/api/depositos/nivel/2
-{"nivel":2,"depositos":[
+$ curl -s https://logistica.opendata.com.ar/api/depositos/nivel/2
+{"depositos":[
   {"id":10,"nombre":"Deposito Salta","visitado":true,"fechaUltimaAuditoria":null},
   {"id":30,"nombre":"Deposito Santa Fe","visitado":true,...},
   {"id":90,"nombre":"Deposito Neuquen","visitado":true,...}
-]}
+],"nivel":2}
 
-$ curl -s http://localhost:7070/api/depositos/nivel/3
-{"nivel":3,"depositos":[]}
+$ curl -s https://logistica.opendata.com.ar/api/depositos/nivel/3
+{"depositos":[],"nivel":3}
 ```
 
 **Verificacion**: con raiz 50, hijos 20 y 80, nietos 10, 30, 90 (3 hojas a la derecha del 20, 1 hoja del 80). El BFS devuelve los niveles correctos y el `visitado` es coherente con la auditoria del flujo 7 (solo Cordoba quedo `false`).
@@ -246,3 +247,121 @@ $ curl -s http://localhost:7070/api/depositos/nivel/3
 | + | BFS por nivel (API no expuesta)                 | ✅ PASS   |
 
 **10/10 flujos de UI en verde + 1 flujo de API**. Ningun bug observado. Unica console warning: `favicon.ico 404` → resuelto agregando un favicon inline SVG en el `<head>`; el warning es del request previo cacheado del browser.
+
+---
+
+## Anexo — Material de estudio en `/cuestionario` (2026-04-23)
+
+Al aproximarse el primer parcial se agrego material de estudio servido por el mismo `WebServer` de Java, reemplazando al viejo `cuestionario.html` single-file. La estructura (hub → quiz → galeria de resumenes) esta inspirada en el repo hermano `../gestion`.
+
+**Verificacion smoke via curl** (puerto 7080 local, el server viejo del usuario seguia corriendo en 7070 como root y no se pudo reiniciar):
+
+```bash
+$ for p in /cuestionario /cuestionario/quiz /cuestionario/resumenes \
+           /cuestionario/clase/1 /cuestionario/clase/6 \
+           /cuestionario/pdf/clase/1 /cuestionario/pdf/clase/6 \
+           /cuestionario/clase/9 /cuestionario/pdf/clase/7 \
+           /cuestionario.html /; do
+    curl -s -o /dev/null -w "%{http_code}  $p\n" http://localhost:7080$p
+  done
+
+200  /cuestionario
+200  /cuestionario/quiz
+200  /cuestionario/resumenes
+200  /cuestionario/clase/1
+200  /cuestionario/clase/6
+200  /cuestionario/pdf/clase/1
+200  /cuestionario/pdf/clase/6    # sirve desde clases/clase5/ (donde vive el PDF)
+404  /cuestionario/clase/9        # validacion estricta 1..6
+404  /cuestionario/pdf/clase/7
+302  /cuestionario.html           # redirige a /cuestionario (compat)
+200  /                            # SPA del TPO sigue funcionando
+```
+
+**Magic bytes de los PDFs** — los 6 devuelven `%PDF` como primeros 4 bytes, con tamaños distintos (no hay colision; el handler matchea "Clase N" o "Clase N " en el nombre del archivo):
+
+| Clase | Tamaño |
+|-------|--------|
+| 1     | 127.525 B |
+| 2     | 143.116 B |
+| 3     | 166.861 B |
+| 4     | 148.614 B |
+| 5     | 113.679 B |
+| 6     | 127.871 B |
+
+**Contenido HTML verificado:**
+
+- Hub: `<title>Material de estudio · AyED II · UADE 2026</title>`
+- Quiz: 6 unidades (`Clase 1 — Repaso de Java` a `Clase 6 — TADs del dominio, archivos y JSON`), 62 preguntas totales (count de `correct:`).
+- Cada `/cuestionario/clase/N` renderiza el `<h1>` correcto.
+- Redirect legacy `/cuestionario.html` → `302 Location: /cuestionario`.
+
+**Regresion del SPA principal:**
+
+- `GET /` devuelve `<title>Logi-UADE — Gestión logística</title>` intacto.
+- `GET /api/estado` responde el JSON KPI esperado.
+
+**Lo que queda pendiente de verificar visualmente** (no habia sesion RDP activa al momento; el usuario tiene que probar con su navegador):
+
+- [ ] Renderizado de las 3 hub cards en `/cuestionario` en ambos temas (claro/oscuro).
+- [ ] Persistencia del quiz en `localStorage` (responder → recargar → ver respuestas conservadas).
+- [ ] Botones "Mostrar todas las respuestas" y "Reiniciar".
+- [ ] Descarga del PDF via atributo `download="AyED-II-clase-N.pdf"`.
+- [ ] Navegacion prev/next entre resumenes.
+
+**Screenshots pendientes** en `tmp/pruebas-ui/` cuando se corra la prueba visual.
+
+---
+
+## Anexo — Material de exposición grupal en `/cuestionario/exposicion` (2026-04-23)
+
+Agregadas dos páginas nuevas para defender el TPO en la evaluación oral:
+
+- `/cuestionario/exposicion` — hub local con 2 cards (Arquitectura · Teórica) y tabla de distribución por persona.
+- `/cuestionario/exposicion/arquitectura` — 6 secciones (una por persona) con talking points, código de referencia y preguntas probables del jurado.
+- `/cuestionario/exposicion/teorica` — 6 secciones con cita literal de la consigna, complejidades documentadas y Q&A.
+
+**Cambios en código:**
+
+- `WebServer.java`: 3 aliases nuevos en `StaticHandler` (mismo patrón que `/cuestionario/resumenes`).
+- `web/cuestionario/index.html`: card nueva en el hub-grid apuntando a `/cuestionario/exposicion` + link en navbar.
+- `web/cuestionario/*.html` (quiz, resumenes, clase1-6): link `🎤 Exposición` agregado al navbar para navegación consistente.
+- `web/cuestionario/assets/estudio.css`: reglas nuevas para `.code-refs`, `.qa` y `blockquote` (~35 líneas al final del archivo).
+
+**Smoke test con curl (post `docker compose up -d --build`):**
+
+| Ruta | Status | Size |
+|------|--------|------|
+| `GET /cuestionario/exposicion` | `200` | 4.9 KB |
+| `GET /cuestionario/exposicion/arquitectura` | `200` | 28.0 KB |
+| `GET /cuestionario/exposicion/teorica` | `200` | 34.3 KB |
+| `GET /cuestionario/exposicion/arquitectura` Content-Type | `text/html; charset=utf-8` | — |
+
+**Contenido verificado via curl:**
+
+- Arquitectura: 6 anchors `#parte-1` a `#parte-6`, Personas A–F presentes.
+- Teórica: 6 anchors `#parte-1` a `#parte-6`, Personas A–F, mención a "Dijkstra" en parte 6.
+- Hub: cards "Exposición de arquitectura", "Defensa teórica de los TDAs" y "Distribución sugerida" renderizan.
+
+**Regresión post-deploy:**
+
+- `GET /` → `200` (SPA del TPO).
+- `GET /cuestionario` → `200` (hub ya muestra la card de Exposición).
+- `GET /cuestionario/quiz` → `200`.
+- `GET /cuestionario/resumenes` → `200`.
+- `GET /cuestionario/clase/1` → `200`.
+- `GET /cuestionario/pdf/clase/3` → `200` (PDF original intacto).
+
+**Pendiente de verificar visualmente** (sin RDP activo al momento):
+
+- [ ] Render de las 4 hub cards en `/cuestionario` (claro/oscuro) — ahora hay 4 cards en vez de 3.
+- [ ] Render de las 6 secciones numeradas de arquitectura y teórica, con `.qa` (Q&A) y `blockquote` (citas).
+- [ ] Dark mode aplicado correctamente a los nuevos componentes.
+- [ ] Anchors del índice que llevan a cada parte (`#parte-N`).
+- [ ] Navegación prev/next entre arquitectura ↔ teórica ↔ hub.
+
+**Screenshots pendientes en `tmp/pruebas-ui/`:**
+
+- `exposicion-hub.png`, `exposicion-arquitectura.png`, `exposicion-teorica.png` (dark).
+- Mismas 3 en light mode.
+

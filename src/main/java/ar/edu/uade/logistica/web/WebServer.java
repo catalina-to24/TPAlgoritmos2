@@ -12,11 +12,13 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Servidor HTTP minimalista sobre {@link HttpServer} de la JDK. Expone la API REST
@@ -74,6 +76,11 @@ public class WebServer {
         server.createContext("/api/depositos", json(this::depositos));
         server.createContext("/api/rutas/distancia", json(this::distancia));
         server.createContext("/api/rutas", json(this::listarRutas));
+
+        // Material de estudio: PDFs de catedra servidos desde el filesystem (clases/claseN/*.pdf).
+        // Se sirven desde disco y no desde classpath porque pesan ~800 KB en total y duplicarlos
+        // en el jar infla el build sin beneficio (estos archivos no cambian con el codigo).
+        server.createContext("/cuestionario/pdf/clase/", new ClasePdfHandler());
 
         server.createContext("/", new StaticHandler());
 
@@ -394,11 +401,39 @@ public class WebServer {
         @Override
         public void handle(HttpExchange ex) throws IOException {
             String path = ex.getRequestURI().getPath();
-            // Aliases: "/" y "/cuestionario" mapean a sus HTML, para URLs limpias en la UI.
+            // Aliases para URLs limpias:
+            //   /                          -> /index.html (SPA del TPO)
+            //   /cuestionario              -> /cuestionario/index.html (hub)
+            //   /cuestionario/quiz         -> /cuestionario/quiz.html
+            //   /cuestionario/resumenes    -> /cuestionario/resumenes.html
+            //   /cuestionario/clase/{1-6}  -> /cuestionario/clase{n}.html
+            //   /cuestionario.html (legacy) -> /cuestionario (ruta nueva)
             if (path.equals("/")) {
                 path = "/index.html";
-            } else if (path.equals("/cuestionario")) {
-                path = "/cuestionario.html";
+            } else if (path.equals("/cuestionario.html")) {
+                ex.getResponseHeaders().set("Location", "/cuestionario");
+                ex.sendResponseHeaders(302, -1);
+                return;
+            } else if (path.equals("/cuestionario") || path.equals("/cuestionario/")) {
+                path = "/cuestionario/index.html";
+            } else if (path.equals("/cuestionario/quiz")) {
+                path = "/cuestionario/quiz.html";
+            } else if (path.equals("/cuestionario/resumenes")) {
+                path = "/cuestionario/resumenes.html";
+            } else if (path.equals("/cuestionario/exposicion") || path.equals("/cuestionario/exposicion/")) {
+                path = "/cuestionario/exposicion/index.html";
+            } else if (path.equals("/cuestionario/exposicion/arquitectura")) {
+                path = "/cuestionario/exposicion/arquitectura.html";
+            } else if (path.equals("/cuestionario/exposicion/teorica")) {
+                path = "/cuestionario/exposicion/teorica.html";
+            } else if (path.startsWith("/cuestionario/clase/")) {
+                String suffix = path.substring("/cuestionario/clase/".length());
+                // Validacion estricta: solo digitos, 1..6. Cualquier otra cosa es 404.
+                if (!suffix.matches("[1-6]")) {
+                    notFound(ex, path);
+                    return;
+                }
+                path = "/cuestionario/clase" + suffix + ".html";
             }
             if (path.contains("..")) {
                 ex.sendResponseHeaders(400, -1);
@@ -407,10 +442,7 @@ public class WebServer {
             String resource = "/web" + path;
             try (InputStream is = WebServer.class.getResourceAsStream(resource)) {
                 if (is == null) {
-                    byte[] notFound = ("Not found: " + path).getBytes(StandardCharsets.UTF_8);
-                    ex.sendResponseHeaders(404, notFound.length);
-                    ex.getResponseBody().write(notFound);
-                    ex.getResponseBody().close();
+                    notFound(ex, path);
                     return;
                 }
                 byte[] bytes = is.readAllBytes();
@@ -432,7 +464,88 @@ public class WebServer {
             if (path.endsWith(".svg")) return "image/svg+xml";
             if (path.endsWith(".png")) return "image/png";
             if (path.endsWith(".ico")) return "image/x-icon";
+            if (path.endsWith(".pdf")) return "application/pdf";
             return "application/octet-stream";
+        }
+    }
+
+    /** 404 compartido entre los handlers de estaticos. */
+    private static void notFound(HttpExchange ex, String path) throws IOException {
+        byte[] body = ("Not found: " + path).getBytes(StandardCharsets.UTF_8);
+        ex.sendResponseHeaders(404, body.length);
+        ex.getResponseBody().write(body);
+        ex.getResponseBody().close();
+    }
+
+    /**
+     * Sirve los PDFs de catedra ({@code clases/clase{n}/*.pdf}) bajo
+     * {@code /cuestionario/pdf/clase/{n}}.
+     *
+     * <p>Se sirve desde filesystem (y no desde classpath) para no duplicar ~800 KB en
+     * el jar. Las clases solo se despliegan en desarrollo; en un build que no incluya
+     * la carpeta {@code clases/}, estos endpoints devuelven 404 limpiamente.
+     *
+     * <p>Seguridad: {@code n} se valida como digito 1..6 contra regex. No se toma nada
+     * del path ni del body para construir la ruta al disco, solo el digito.
+     */
+    private static class ClasePdfHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange ex) throws IOException {
+            String path = ex.getRequestURI().getPath();
+            String suffix = path.substring("/cuestionario/pdf/clase/".length());
+            if (!suffix.matches("[1-6]")) {
+                notFound(ex, path);
+                return;
+            }
+            // La carpeta "natural" es clases/clase{n}/. Pero clase6 fue dictada junto con
+            // clase5 y su PDF vive en clases/clase5/. Por eso buscamos primero en el
+            // directorio homonimo y, si no hay match, recorremos toda la carpeta clases/
+            // en busca de un PDF con "Clase{n}" en el nombre.
+            Path pdf = findClasePdf(Path.of("clases", "clase" + suffix), suffix);
+            if (pdf == null) pdf = findClasePdfInRoot(Path.of("clases"), suffix);
+            if (pdf == null) {
+                notFound(ex, path);
+                return;
+            }
+            byte[] bytes = Files.readAllBytes(pdf);
+            ex.getResponseHeaders().set("Content-Type", "application/pdf");
+            ex.getResponseHeaders().set("Content-Disposition",
+                    "inline; filename=\"AyED-II-clase-" + suffix + ".pdf\"");
+            ex.getResponseHeaders().set("Cache-Control", "no-store, must-revalidate");
+            ex.sendResponseHeaders(200, bytes.length);
+            ex.getResponseBody().write(bytes);
+            ex.getResponseBody().close();
+        }
+
+        /**
+         * Busca el primer .pdf con "Clase{n}" o "Clase {n}" en el nombre dentro de {@code dir}.
+         * El espacio opcional contempla que el PDF de clase 1 se llama "Clase 1" y los demas
+         * "ClaseN" pegado.
+         */
+        private static Path findClasePdf(Path dir, String n) throws IOException {
+            if (!Files.isDirectory(dir)) return null;
+            // Regex: ".*Clase ?N(?=[^0-9]|$).*\.pdf" — el lookahead evita que "Clase1" matchee al buscar "Clase 1" e inverso.
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+                    ".*Clase ?" + n + "(?=[^0-9]|$).*\\.pdf$",
+                    java.util.regex.Pattern.CASE_INSENSITIVE);
+            try (Stream<Path> s = Files.list(dir)) {
+                return s.filter(p -> pattern.matcher(p.getFileName().toString()).matches())
+                        .sorted()
+                        .findFirst()
+                        .orElse(null);
+            }
+        }
+
+        /** Fallback: recorre todos los subdirectorios de clases/ buscando el PDF. */
+        private static Path findClasePdfInRoot(Path root, String n) throws IOException {
+            if (!Files.isDirectory(root)) return null;
+            try (Stream<Path> dirs = Files.list(root)) {
+                for (Path dir : dirs.filter(Files::isDirectory).toList()) {
+                    Path found = findClasePdf(dir, n);
+                    if (found != null) return found;
+                }
+            }
+            return null;
         }
     }
 }

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Defensa teórica · TDAs · AyED II</title>
+<link rel="stylesheet" href="/cuestionario/assets/estudio.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/cuestionario">
+    <span class="brand-icon">AyED</span>
+    <span>AyED II <span class="brand-sub">· UADE 3.4.229 · 2026-1C</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/cuestionario">🏠 Inicio</a>
+    <a class="nav-link" href="/cuestionario/quiz">📝 Quiz</a>
+    <a class="nav-link" href="/cuestionario/resumenes">📚 Resúmenes</a>
+    <a class="nav-link active" href="/cuestionario/exposicion">🎤 Exposición</a>
+    <a class="nav-link" href="/">🚚 TPO</a>
+    <button id="theme-toggle" class="theme-toggle" type="button">Modo claro</button>
+  </div>
+</nav>
+
+<div class="container-narrow">
+
+  <header class="summary-header">
+    <span class="eyebrow">Defensa teórica · 6 partes · ~50 min</span>
+    <h1>Justificación de los TDAs</h1>
+    <p class="lead">
+      Para cada estructura del TPO, la pregunta es la misma: <em>¿por qué este TDA y no otro?</em>.
+      Cada parte cita la consigna, muestra la complejidad documentada en el Javadoc y anticipa
+      las preguntas típicas del jurado.
+    </p>
+    <div class="tags">
+      <span class="badge">2 ptos (rúbrica)</span>
+      <span class="badge">6 personas</span>
+      <span class="badge">4 TDAs + complejidad + BFS</span>
+      <span class="badge">Citas de la consigna</span>
+    </div>
+  </header>
+
+  <div class="info-box">
+    <h3>Índice</h3>
+    <ol>
+      <li><a href="#parte-1">Parte 1 — Persona A · Complejidad algorítmica</a></li>
+      <li><a href="#parte-2">Parte 2 — Persona B · Pila — <code>Camion</code></a></li>
+      <li><a href="#parte-3">Parte 3 — Persona C · Cola Prioritaria — <code>CentroDistribucion</code></a></li>
+      <li><a href="#parte-4">Parte 4 — Persona D · ABB — <code>ArbolDepositos</code></a></li>
+      <li><a href="#parte-5">Parte 5 — Persona E · BFS / Recorrido por nivel</a></li>
+      <li><a href="#parte-6">Parte 6 — Persona F · Grafo + Dijkstra — <code>GrafoDepositos</code></a></li>
+    </ol>
+  </div>
+
+  <!-- =============== PARTE 1 — COMPLEJIDAD =============== -->
+  <section class="summary-section" id="parte-1">
+    <h2><span class="sec-num">1</span> Complejidad algorítmica — Persona A · ~6 min</h2>
+
+    <div class="callout">
+      <strong>Objetivo:</strong> Sentar el vocabulario que usan las 5 personas siguientes. Sin "por qué importa Big O", las justificaciones posteriores pierden peso.
+    </div>
+
+    <h3>Talking points</h3>
+    <ul>
+      <li><strong>Qué es Big O.</strong> Una cota superior asintótica del costo de un algoritmo: cómo crece el tiempo (o el espacio) en función del tamaño de entrada <code>n</code>, ignorando constantes y términos menores.</li>
+      <li><strong>Por qué "cota superior".</strong> Caracteriza el peor caso. No decimos "tarda esto", decimos "no tarda más que esto". Es una garantía, no una medición.</li>
+      <li><strong>Tasas típicas</strong>, de mejor a peor: <code>O(1)</code> &lt; <code>O(log n)</code> &lt; <code>O(n)</code> &lt; <code>O(n log n)</code> &lt; <code>O(n²)</code> &lt; <code>O(2ⁿ)</code> &lt; <code>O(n!)</code>.</li>
+      <li><strong>Amortizado.</strong> Promedio sobre una secuencia de operaciones. <code>ArrayDeque.push()</code> es <code>O(1)</code> amortizado: la mayoría de las inserciones son <code>O(1)</code>; cuando el buffer interno se agota y hay que redimensionar, esa operación puntual es <code>O(n)</code>, pero se reparte entre las siguientes.</li>
+      <li><strong>Complejidad espacial también cuenta.</strong> <code>O(1)</code> en tiempo con <code>O(n)</code> en memoria puede ser peor que <code>O(n)</code> con <code>O(1)</code>. Por eso en el TPO documentamos las dos.</li>
+      <li><strong>Ejemplos del proyecto.</strong>
+        <ul>
+          <li><code>Camion.cargar()</code> → <code>O(1)</code> amortizado tiempo, <code>O(1)</code> espacio.</li>
+          <li><code>CentroDistribucion.procesarSiguiente()</code> → <code>O(log n)</code> tiempo.</li>
+          <li><code>ArbolDepositos.buscar(id)</code> → <code>O(log n)</code> promedio, <code>O(n)</code> peor caso.</li>
+          <li><code>GrafoDepositos.distanciaMinima()</code> → <code>O((V+E) log V)</code> tiempo.</li>
+        </ul>
+      </li>
+      <li><strong>Por qué importa en este TPO.</strong> La rúbrica pesa <strong>30% en Eficiencia</strong>. Cada método público de cada TDA tiene <code>Complejidad: O(...)</code> en el Javadoc — no es adorno, es lo que se evalúa.</li>
+      <li><strong>Cierre.</strong> "Con este vocabulario armado, mi compañero B va a justificar la primera decisión concreta: por qué una pila para el camión."</li>
+    </ul>
+
+    <h3>Código de referencia</h3>
+    <ul class="code-refs">
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/Camion.java:29</code> — <code>Complejidad: O(1) amortizado tiempo, O(1) espacio</code>.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/ArbolDepositos.java:34</code> — <code>O(log n) promedio, O(n) peor caso; O(h) espacio de pila</code>.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/GrafoDepositos.java:69</code> — <code>O((V+E) log V) tiempo, O(V) espacio</code>.</li>
+    </ul>
+
+    <h3>Cita literal de la consigna</h3>
+    <blockquote>
+      "<strong>Análisis:</strong> Documentación de la complejidad temporal y espacial de cada operación principal (O(1), O(n), O(log n))." <em>(Consigna §2)</em>
+    </blockquote>
+
+    <h3>Preguntas probables del jurado</h3>
+    <dl class="qa">
+      <dt>¿Cuál es la diferencia entre caso peor y caso amortizado?</dt>
+      <dd>El peor caso mira <em>una</em> operación. El amortizado mira el promedio sobre <em>muchas</em> operaciones. Una <code>ArrayDeque</code> tiene insert <code>O(n)</code> en peor caso (cuando redimensiona), pero <code>O(1)</code> amortizado — el costo del resize se reparte entre las inserciones siguientes.</dd>
+      <dt>¿Cómo medirían complejidad en la práctica?</dt>
+      <dd>Contando operaciones dominantes: comparaciones, asignaciones, llamadas recursivas. No con cronómetro. El cronómetro mide constantes; Big O las ignora.</dd>
+      <dt>¿Por qué documentan <em>tiempo y espacio</em> y no solo tiempo?</dt>
+      <dd>Porque hay trade-offs reales. Matriz de adyacencia para un grafo es <code>O(1)</code> para ver si dos nodos están conectados, pero usa <code>O(V²)</code> de memoria. Lista de adyacencia usa <code>O(V+E)</code> y es mejor en grafos dispersos como el nuestro.</dd>
+    </dl>
+  </section>
+
+  <!-- =============== PARTE 2 — PILA =============== -->
+  <section class="summary-section" id="parte-2">
+    <h2><span class="sec-num">2</span> Pila — <code>Camion</code> — Persona B · ~8 min</h2>
+
+    <div class="callout">
+      <strong>Objetivo:</strong> Justificar por qué una <strong>pila (LIFO)</strong> es la estructura correcta para el camión. La consigna lo impone, pero hay que explicar <em>por qué</em>.
+    </div>
+
+    <h3>Talking points</h3>
+    <ul>
+      <li><strong>El requerimiento literal.</strong> "El último paquete en entrar al camión es el primero en ser descargado." Eso es la definición textbook de LIFO — Last In, First Out. Una pila.</li>
+      <li><strong>El segundo requisito: deshacer en <code>O(1)</code>.</strong> La consigna pide un <code>deshacer()</code> que retire la última carga en caso de error de destino. Una pila soporta <code>pop()</code> en <code>O(1)</code> — que es exactamente eso.</li>
+      <li><strong>Implementación: <code>ArrayDeque</code>.</strong> <code>ArrayDeque</code> es la recomendación oficial del JDK para pilas desde Java 6. Lo usamos <em>solo</em> con <code>push</code>, <code>pop</code>, <code>peek</code> — respeta la semántica de pila.</li>
+      <li><strong>¿Por qué no <code>java.util.Stack</code>?</strong> Hereda de <code>Vector</code> y es sincronizado. Overhead innecesario en single-thread (el Service serializa con lock externo). El propio Javadoc del JDK recomienda <code>ArrayDeque</code>.</li>
+      <li><strong>¿Por qué no una <code>ArrayList</code> con <code>remove(size-1)</code>?</strong> Técnicamente funciona. El problema es que pierde la <em>semántica</em>: <code>ArrayList</code> permite insertar en cualquier índice, borrar, recorrer. Nadie te impide usarla como lo que no es. La pila es un contrato: solo cima, solo LIFO.</li>
+      <li><strong>Complejidad documentada.</strong>
+        <ul>
+          <li><code>cargar(Paquete)</code> → <code>O(1)</code> amortizado / <code>O(1)</code> espacio.</li>
+          <li><code>descargar()</code> → <code>O(1)</code> / <code>O(1)</code>.</li>
+          <li><code>deshacerUltimaCarga()</code> → <code>O(1)</code> / <code>O(1)</code>.</li>
+          <li><code>pesoTotal()</code> → <code>O(n)</code> / <code>O(1)</code>.</li>
+          <li><code>verCargaActual()</code> → <code>O(n)</code> / <code>O(n)</code> (copia defensiva).</li>
+        </ul>
+      </li>
+      <li><strong>Generics.</strong> <code>Paquete&lt;?&gt;</code> en la pila: el camión no sabe de qué tipo es el contenido, pero el sistema mantiene la información de tipo en el <code>Paquete&lt;T&gt;</code> específico.</li>
+      <li><strong>Comportamiento en bordes.</strong> <code>descargar()</code> sobre pila vacía lanza <code>NoSuchElementException</code>. El WebServer la traduce a <code>400</code> (error semántico), no a <code>500</code>. La capa de presentación traduce, el TDA no hace magia.</li>
+    </ul>
+
+    <h3>Código de referencia</h3>
+    <ul class="code-refs">
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/Camion.java:24</code> — <code>public class Camion</code>.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/Camion.java:31</code> — <code>cargar(Paquete)</code> con <code>@implNote Complejidad: O(1) amortizado</code>.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/Camion.java:59</code> — <code>deshacerUltimaCarga()</code> con <code>O(1)</code>.</li>
+      <li><code>src/test/java/ar/edu/uade/logistica/structures/CamionTest.java</code> — test <code>deshacer_devuelve_paquete_tope</code>.</li>
+    </ul>
+
+    <h3>Cita literal de la consigna</h3>
+    <blockquote>
+      "El último paquete en entrar al camión es el primero en ser descargado en el punto de distribución." <em>(Consigna §Iteración 1.B)</em>
+      <br><br>
+      "<strong>Operación:</strong> Se debe permitir 'deshacer' la última carga de un paquete en caso de error de destino (<code>O(1)</code>)." <em>(Consigna §Iteración 1.B)</em>
+    </blockquote>
+
+    <h3>Preguntas probables del jurado</h3>
+    <dl class="qa">
+      <dt>¿Por qué <code>ArrayDeque</code> y no <code>Stack</code>?</dt>
+      <dd><code>Stack</code> hereda de <code>Vector</code> y es <em>sincronizado</em>: paga overhead de locks en operaciones que en single-thread no los necesitan. <code>ArrayDeque</code> no es sincronizado, es más rápido, y el mismo Javadoc del JDK recomienda usarlo como reemplazo. Además, <code>Stack</code> expone métodos de <code>Vector</code> (como <code>get(index)</code>) que rompen la semántica pura de pila.</dd>
+      <dt>¿Qué pasa si llaman <code>descargar()</code> con el camión vacío?</dt>
+      <dd>Tira <code>NoSuchElementException</code>. El <code>WebServer</code> la captura y devuelve <code>400</code> con <code>{"error": "..."}</code>, no <code>500</code>. La excepción es de dominio (error del cliente), no una falla del sistema.</dd>
+      <dt>¿Por qué no una lista enlazada con un puntero a la cola?</dt>
+      <dd>Funcionaría y también da <code>O(1)</code>. Pero pierde semántica: una lista enlazada te deja recorrer, insertar en medio, borrar cualquier nodo. Al usar <code>ArrayDeque</code> solo con <code>push</code>/<code>pop</code> transmitimos al lector del código que es una pila, y nada más. El contrato del TDA se respeta en la interfaz.</dd>
+    </dl>
+  </section>
+
+  <!-- =============== PARTE 3 — COLA PRIORITARIA =============== -->
+  <section class="summary-section" id="parte-3">
+    <h2><span class="sec-num">3</span> Cola Prioritaria — <code>CentroDistribucion</code> — Persona C · ~8 min</h2>
+
+    <div class="callout">
+      <strong>Objetivo:</strong> Justificar por qué una <strong>cola prioritaria (heap binaria)</strong> para el centro, y cómo se resuelve el desempate FIFO cuando dos paquetes empatan en prioridad.
+    </div>
+
+    <h3>Talking points</h3>
+    <ul>
+      <li><strong>El requerimiento.</strong> Paquetes marcados como "Urgente" o con peso mayor a 50 kg deben procesarse antes que los estándar. Ese "antes" implica un orden distinto al de llegada — no es FIFO puro.</li>
+      <li><strong>Descarte: cola FIFO simple.</strong> Respeta orden de llegada y nada más. Si un urgente llega quinto, se procesa quinto. Incumple la consigna.</li>
+      <li><strong>Descarte: lista ordenada.</strong> Funciona pero cuesta <code>O(n)</code> al insertar (hay que buscar la posición). La cola prioritaria con heap cuesta <code>O(log n)</code>.</li>
+      <li><strong>Elección: heap binaria (<code>PriorityQueue</code>).</strong> Inserción y extracción en <code>O(log n)</code>. La cima siempre es el de mayor prioridad.</li>
+      <li><strong>Comparador compuesto.</strong> Primer criterio: <code>prioritario</code> descendente (<code>true</code> antes que <code>false</code>). Desempate: <code>ordenLlegada</code> ascendente — garantiza FIFO estable dentro de la misma prioridad.</li>
+      <li><strong>¿Por qué un record <code>Entrada</code>?</strong> La heap no reordena después de insertar. Si <code>requierePrioridad()</code> se evaluara en cada comparación y cambiara con el tiempo, el invariante del heap se rompería. Congelamos la prioridad al recibir en un record privado.</li>
+      <li><strong><code>AtomicLong</code> para el número de orden.</strong> El contador es atómico: si alguna vez alguien llama <code>recibir()</code> sin el lock del Service, cada paquete sigue teniendo número único. Defensa en profundidad.</li>
+      <li><strong>Complejidad documentada.</strong>
+        <ul>
+          <li><code>recibir(Paquete)</code> → <code>O(log n)</code> / <code>O(1)</code>.</li>
+          <li><code>procesarSiguiente()</code> → <code>O(log n)</code> / <code>O(1)</code>.</li>
+          <li><code>cantidadPendientes()</code> → <code>O(1)</code> / <code>O(1)</code>.</li>
+          <li><code>verPendientes()</code> → <code>O(n log n)</code> / <code>O(n)</code> (drena una copia).</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3>Código de referencia</h3>
+    <ul class="code-refs">
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/CentroDistribucion.java:28</code> — clase.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/CentroDistribucion.java:44</code> — <code>recibir()</code> con <code>O(log n)</code>.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/CentroDistribucion.java:56</code> — <code>procesarSiguiente()</code> con <code>O(log n)</code>.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/CentroDistribucion.java:92</code> — <code>record Entrada(prioritario, ordenLlegada)</code>.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/model/Paquete.java</code> — <code>requierePrioridad()</code>.</li>
+    </ul>
+
+    <h3>Cita literal de la consigna</h3>
+    <blockquote>
+      "Los paquetes marcados como 'Urgente' o con peso &gt; 50kg deben procesarse antes que los envíos estándar." <em>(Consigna §Iteración 1.C)</em>
+    </blockquote>
+
+    <h3>Preguntas probables del jurado</h3>
+    <dl class="qa">
+      <dt>¿Cómo garantizan FIFO entre paquetes de la misma prioridad?</dt>
+      <dd>El comparador desempata por <code>ordenLlegada</code> ascendente. La heap por sí sola no es estable, pero al forzar el comparador a usar un contador monótono como tiebreak, el orden relativo se preserva: entre dos paquetes prioritarios, sale primero el que llegó primero.</dd>
+      <dt>¿Qué pasa si un paquete cambia su flag de "urgente" después de encolado?</dt>
+      <dd>No se reordena. Congelamos <code>prioritario</code> al recibir. La heap de Java no soporta <em>decrease-key</em> eficiente, así que mutar la prioridad rompería el invariante sin forma barata de arreglarlo. La decisión se toma al entrar al centro y no se revisa.</dd>
+      <dt>¿Por qué <code>AtomicLong</code> si ya hay un lock externo?</dt>
+      <dd>Defensa en profundidad. Si alguien alguna vez llama <code>recibir()</code> sin el lock (por ejemplo, desde un test o un endpoint futuro), el contador sigue garantizando secuencia única. Cuesta prácticamente nada y cierra una puerta de race.</dd>
+    </dl>
+  </section>
+
+  <!-- =============== PARTE 4 — ABB =============== -->
+  <section class="summary-section" id="parte-4">
+    <h2><span class="sec-num">4</span> ABB — <code>ArbolDepositos</code> — Persona D · ~10 min</h2>
+
+    <div class="callout">
+      <strong>Objetivo:</strong> Justificar el ABB manual (no <code>TreeMap</code>), los recorridos implementados y la semántica literal de la auditoría post-orden.
+    </div>
+
+    <h3>Talking points</h3>
+    <ul>
+      <li><strong>Requisito obligatorio.</strong> La consigna dice textual: "Se debe programar un Árbol Binario de Búsqueda (ABB) desde cero." No es opción.</li>
+      <li><strong>Por qué no <code>TreeMap</code>.</strong> <code>TreeMap</code> es la solución adulta en producción (árbol rojo-negro, balanceado), pero la consigna prohíbe usar la implementación de la JDK. El objetivo pedagógico es que el estudiante entienda recursión, nodos y recorridos desde cero.</li>
+      <li><strong>Implementación.</strong> Una clase <code>Nodo</code> estática anidada con <code>left</code>, <code>right</code> y <code>Deposito</code>. Ordenado ascendentemente por <code>deposito.getId()</code>. Insertar es recursivo; buscar es iterativo (ahorra espacio de pila).</li>
+      <li><strong>Sin balanceo deliberado.</strong> No es AVL ni Rojo-Negro. En el peor caso (IDs que llegan ordenados) degenera a lista enlazada y <code>buscar</code> es <code>O(n)</code>. En el scope del TPO asumimos distribución razonable de IDs.</li>
+      <li><strong>Cuatro recorridos.</strong>
+        <ul>
+          <li><strong>In-orden</strong> (<code>listarTodos</code>): depósitos ordenados por ID.</li>
+          <li><strong>Post-orden</strong> (<code>auditarDepositosPendientes</code>): hijos antes que padre — bottom-up.</li>
+          <li><strong>BFS por nivel</strong> (<code>obtenerNivel</code>): recorrido por amplitud — tema del compañero E.</li>
+          <li>Pre-orden disponible internamente aunque no expuesto por endpoint.</li>
+        </ul>
+      </li>
+      <li><strong>Auditoría post-orden — la pregunta clave.</strong> La consigna pide marcar como "visitados" a los depósitos que <em>no</em> fueron auditados en los últimos 30 días. La semántica parece invertida pero es literal del PDF. El booleano <code>visitado = true</code> significa en realidad "requiere visita del auditor".</li>
+      <li><strong>Por qué post-orden.</strong> La consigna lo impone. Conceptualmente tiene sentido: se auditan hojas (depósitos terminales) antes que ancestros — es un cierre bottom-up, como cerrar las sucursales de abajo hacia arriba.</li>
+      <li><strong>Cada nodo tiene <code>fechaUltimaAuditoria: LocalDateTime</code> y <code>visitado: boolean</code>.</strong> Pedido textual de la consigna. El método recorre y actualiza el flag según la fecha de corte.</li>
+      <li><strong>Complejidad documentada.</strong>
+        <ul>
+          <li><code>insertar</code> → <code>O(log n)</code> promedio, <code>O(n)</code> peor caso; <code>O(h)</code> pila.</li>
+          <li><code>buscar</code> → <code>O(log n)</code> promedio, <code>O(n)</code> peor caso; <code>O(1)</code> espacio (iterativo).</li>
+          <li><code>auditarDepositosPendientes</code> → <code>O(n)</code> / <code>O(h)</code>.</li>
+          <li><code>listarTodos</code> (in-orden) → <code>O(n)</code> / <code>O(h)</code>.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3>Código de referencia</h3>
+    <ul class="code-refs">
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/ArbolDepositos.java:24</code> — clase.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/ArbolDepositos.java:75</code> — <code>auditarDepositosPendientes(LocalDateTime)</code> post-orden.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/ArbolDepositos.java:91</code> — <code>obtenerNivel(int)</code> BFS.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/ArbolDepositos.java:131</code> — <code>listarTodos()</code> in-orden.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/ArbolDepositos.java:189</code> — <code>Nodo</code> privado con <code>left</code>, <code>right</code>, <code>Deposito</code>.</li>
+    </ul>
+
+    <h3>Cita literal de la consigna</h3>
+    <blockquote>
+      "<strong>Implementación Obligatoria:</strong> Se debe programar un Árbol Binario de Búsqueda (ABB) desde cero." <em>(Consigna §Iteración 2.A)</em>
+      <br><br>
+      "El nodo del árbol debe contener un atributo <code>boolean visitado</code> y un atributo <code>LocalDateTime fechaUltimaAuditoria</code>." <em>(Consigna §Iteración 2.A)</em>
+      <br><br>
+      "<strong>Requerimiento Técnico:</strong> Implementar un método de Auditoría que recorra el árbol (post-orden) y marque como 'visitados' solo aquellos depósitos que no han sido auditados en los últimos 30 días." <em>(Consigna §Iteración 2.A)</em>
+    </blockquote>
+
+    <h3>Preguntas probables del jurado</h3>
+    <dl class="qa">
+      <dt>¿Por qué post-orden y no in-orden para la auditoría?</dt>
+      <dd>Lo impone la consigna. Conceptualmente tiene sentido: se procesan los nodos hoja (depósitos sin subordinados) antes que los padres. Es un cierre bottom-up, como si auditaras primero las sucursales y después el hub regional que las contiene.</dd>
+      <dt>¿Qué pasa si el ABB se degenera en el peor caso?</dt>
+      <dd>Si los IDs llegan ya ordenados, el árbol degenera en lista enlazada y <code>buscar</code> pasa a <code>O(n)</code>. Asumimos distribución razonable de IDs; la consigna no pide balanceo. AVL o Rojo-Negro sería sobre-ingeniería para el scope académico del TPO.</dd>
+      <dt>La semántica de <code>visitado = true</code> parece invertida — ¿no se supone que "visitado" es "ya fue auditado"?</dt>
+      <dd>Es literal de la consigna: "marque como <em>visitados</em> solo aquellos depósitos que <em>no</em> han sido auditados en los últimos 30 días". El nombre del flag es ambiguo — el dominio es "requiere visita del auditor". Lo respetamos como viene del enunciado para no ser marcados como desvíos.</dd>
+    </dl>
+  </section>
+
+  <!-- =============== PARTE 5 — BFS =============== -->
+  <section class="summary-section" id="parte-5">
+    <h2><span class="sec-num">5</span> BFS / Recorrido por nivel — Persona E · ~6 min</h2>
+
+    <div class="callout">
+      <strong>Objetivo:</strong> Justificar el recorrido por amplitud para el reporte por nivel N del árbol de depósitos, y explicar la técnica del <em>snapshot del tamaño de la cola</em>.
+    </div>
+
+    <h3>Talking points</h3>
+    <ul>
+      <li><strong>El requerimiento.</strong> La consigna pide imprimir qué depósitos están en el "Nivel N" del árbol para coordinar inspecciones regionales.</li>
+      <li><strong>BFS vs DFS.</strong> DFS (in/pre/post-orden) recorre a profundidad — va hasta la hoja antes de volver. BFS recorre a amplitud: termina un nivel entero antes de bajar al siguiente. Para "qué nodos están en el nivel N", BFS es natural.</li>
+      <li><strong>Estructura auxiliar: cola FIFO.</strong> Usamos <code>ArrayDeque</code> con <code>offer</code>/<code>poll</code>. Se empieza con la raíz en la cola; en cada iteración se saca un nodo, se procesa y se encolan sus hijos.</li>
+      <li><strong>Técnica del snapshot del tamaño.</strong> Al entrar a procesar un nivel, se guarda el tamaño actual de la cola — eso dice cuántos nodos son del nivel actual. Se procesan exactamente esos, y los hijos encolados en el medio ya son del nivel siguiente. Así se diferencian los niveles sin una estructura extra.</li>
+      <li><strong>Diferencia con DFS iterativo.</strong> DFS iterativo usa una pila, no una cola. Cambiar la estructura auxiliar cambia el orden del recorrido: LIFO = DFS, FIFO = BFS.</li>
+      <li><strong>Uso en el TPO: <code>obtenerNivel(int n)</code>.</strong> Devuelve <code>List&lt;Deposito&gt;</code> del nivel solicitado. La raíz es nivel 0.</li>
+      <li><strong>Complejidad documentada.</strong> Tiempo <code>O(n)</code> (visita cada nodo una vez), espacio <code>O(w)</code> donde <code>w</code> es el ancho máximo (el tamaño máximo de la cola en algún nivel).</li>
+      <li><strong>Nota sobre grafos.</strong> BFS también sirve en grafos, pero para minimizar <em>saltos</em>, no distancia con pesos. El TPO usa Dijkstra para distancia mínima en km — el compañero F lo justifica.</li>
+    </ul>
+
+    <h3>Código de referencia</h3>
+    <ul class="code-refs">
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/ArbolDepositos.java:91</code> — <code>obtenerNivel(int)</code> con <code>O(n)</code> tiempo, <code>O(w)</code> espacio.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/service/LogisticaService.java</code> — <code>depositosPorNivel(int)</code> expone al endpoint.</li>
+      <li>Endpoint: <code>GET /api/depositos/nivel/{n}</code> (ver <code>CLAUDE.md</code>).</li>
+    </ul>
+
+    <h3>Cita literal de la consigna</h3>
+    <blockquote>
+      "<strong>Reporte por Niveles:</strong> El sistema debe imprimir qué depósitos se encuentran en el 'Nivel N' del árbol para coordinar inspecciones regionales." <em>(Consigna §Iteración 2.A)</em>
+    </blockquote>
+
+    <h3>Preguntas probables del jurado</h3>
+    <dl class="qa">
+      <dt>¿Podrían haber usado recursión en lugar de una cola?</dt>
+      <dd>Sí, recorriendo el árbol con DFS recursivo y acumulando por nivel con un contador. Pero requiere más cuidado (hay que pasar el nivel actual como parámetro) y no es la forma idiomática. BFS iterativo con cola es la solución estándar, y refleja mejor la intuición del "recorrido por amplitud".</dd>
+      <dt>¿Qué pasa si el grafo tiene ciclos? (aunque el árbol no)</dt>
+      <dd>En un grafo, BFS necesita un <code>Set&lt;Visited&gt;</code> para no revisitar. En un ABB no hay ciclos por definición, así que no hace falta. En el grafo de rutas usamos Dijkstra (que mantiene distancias), no BFS puro.</dd>
+      <dt>¿Por qué usan <code>ArrayDeque</code> en lugar de <code>LinkedList</code>?</dt>
+      <dd><code>ArrayDeque</code> es más rápida: menos overhead por nodo (no hay <code>next</code>/<code>prev</code> en cada elemento) y mejor localidad de memoria. El JDK recomienda <code>ArrayDeque</code> como implementación por defecto de <code>Deque</code>.</dd>
+    </dl>
+  </section>
+
+  <!-- =============== PARTE 6 — GRAFO + DIJKSTRA =============== -->
+  <section class="summary-section" id="parte-6">
+    <h2><span class="sec-num">6</span> Grafo + Dijkstra — <code>GrafoDepositos</code> — Persona F · ~10 min</h2>
+
+    <div class="callout">
+      <strong>Objetivo:</strong> Justificar la lista de adyacencia (vs matriz) y Dijkstra (vs BFS) para calcular distancia mínima en kilómetros entre depósitos. Cerrar la exposición.
+    </div>
+
+    <h3>Talking points</h3>
+    <ul>
+      <li><strong>El requerimiento.</strong> Modelar la red como grafo (matriz o lista de adyacencia) y calcular la distancia mínima entre dos depósitos para optimizar combustible. La consigna deja elegir entre matriz o lista — nosotros elegimos lista.</li>
+      <li><strong>Lista de adyacencia vs matriz: dos ejes.</strong>
+        <ul>
+          <li><strong>Memoria.</strong> Matriz: <code>O(V²)</code>. Lista: <code>O(V+E)</code>. Con pocas conexiones por depósito (grafo disperso), lista gana.</li>
+          <li><strong>Recorrer vecinos.</strong> Matriz: <code>O(V)</code> por nodo. Lista: <code>O(grado(v))</code>. Dijkstra con lista + heap es <code>O((V+E) log V)</code>; con matriz serían <code>O(V²)</code>.</li>
+        </ul>
+      </li>
+      <li><strong>Implementación.</strong> <code>Map&lt;Integer, List&lt;Arista&gt;&gt;</code> donde la clave es el id del depósito y el valor son sus aristas salientes. <code>record Arista(int destino, int distancia)</code>.</li>
+      <li><strong>Grafo no dirigido.</strong> Cada ruta se registra en ambas direcciones (si <code>A ↔ B</code> de 100 km, entonces <code>A</code> tiene arista a <code>B</code> y <code>B</code> tiene arista a <code>A</code>). En <code>listarRutas()</code> filtramos por <code>origen &lt; destino</code> para no mostrar duplicadas.</li>
+      <li><strong>Dijkstra, no BFS.</strong> BFS calcula <em>menos saltos</em> (hops). Dijkstra calcula <em>menor distancia</em> con pesos. Las aristas tienen peso en km, así que Dijkstra es el algoritmo correcto.</li>
+      <li><strong>Dijkstra "lazy".</strong> La <code>PriorityQueue</code> de la JDK no expone <em>decrease-key</em>. En vez de bajar la clave de una entrada vieja, insertamos una entrada nueva con la distancia menor y, al extraer, descartamos las obsoletas (<code>if (actual.distancia &gt; distancias[nodo]) continue</code>).</li>
+      <li><strong>Cortocircuito.</strong> Al extraer el destino se retorna su distancia. Dijkstra garantiza que al sacar un nodo del heap, su distancia es óptima y final.</li>
+      <li><strong>Pesos no negativos — crítico.</strong> Dijkstra solo es correcto si los pesos son &gt;= 0. <code>Ruta.distanciaKm</code> valida no-negatividad en el constructor. Si fueran negativos necesitaríamos Bellman-Ford (O(VE)).</li>
+      <li><strong>Complejidad documentada.</strong>
+        <ul>
+          <li><code>agregarDeposito(int)</code> → <code>O(1)</code> amortizado.</li>
+          <li><code>conectar(Ruta)</code> → <code>O(1)</code> amortizado (inserta en ambos sentidos).</li>
+          <li><code>distanciaMinima(int,int)</code> → <code>O((V+E) log V)</code> tiempo / <code>O(V)</code> espacio.</li>
+          <li><code>listarRutas()</code> → <code>O(V+E)</code> tiempo / <code>O(E)</code> espacio.</li>
+        </ul>
+      </li>
+      <li><strong>Cierre de la exposición.</strong> "Cada TDA responde a un requerimiento puntual de la consigna, cada operación tiene complejidad documentada, y cada elección fue tomada comparando con la alternativa. Eso es lo que se defiende: no que elegimos bien, sino <em>por qué</em>."</li>
+    </ul>
+
+    <h3>Código de referencia</h3>
+    <ul class="code-refs">
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/GrafoDepositos.java:27</code> — clase.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/GrafoDepositos.java:50</code> — <code>conectar(Ruta)</code> bidireccional.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/GrafoDepositos.java:71</code> — <code>distanciaMinima</code> (Dijkstra lazy).</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/GrafoDepositos.java:112</code> — <code>listarRutas()</code> sin duplicar.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/structures/GrafoDepositos.java:126</code> — <code>record Arista(destino, distancia)</code>.</li>
+      <li><code>src/main/java/ar/edu/uade/logistica/model/Ruta.java</code> — validación <code>distanciaKm &gt;= 0</code>.</li>
+    </ul>
+
+    <h3>Cita literal de la consigna</h3>
+    <blockquote>
+      "<strong>Estructura:</strong> Modelar la red como un Grafo (Matriz o Lista de Adyacencia)." <em>(Consigna §Iteración 2.B)</em>
+      <br><br>
+      "<strong>Cálculo de Distancia:</strong> Implementar un algoritmo para encontrar la distancia mínima (número de saltos o km) entre dos depósitos para optimizar el combustible." <em>(Consigna §Iteración 2.B)</em>
+    </blockquote>
+
+    <h3>Preguntas probables del jurado</h3>
+    <dl class="qa">
+      <dt>¿Por qué Dijkstra y no BFS, si la consigna dice "número de saltos o km"?</dt>
+      <dd>Porque optimizamos combustible: los km son la métrica que importa en logística. BFS da "menos saltos", que no es lo mismo que "menor consumo". Si una ruta con 3 saltos totaliza 200 km y otra con 5 saltos totaliza 150 km, la segunda gasta menos combustible. Dijkstra sí lo detecta, BFS no.</dd>
+      <dt>¿Qué pasa si hubiera aristas con peso negativo?</dt>
+      <dd>Dijkstra deja de ser correcto. Su prueba de optimalidad asume que nunca va a encontrar un camino más corto después de fijar la distancia de un nodo. Con pesos negativos eso no se cumple. Si fuera un requisito, usaríamos Bellman-Ford (<code>O(VE)</code>, detecta ciclos negativos). En el TPO, <code>Ruta.distanciaKm</code> valida no-negatividad en el constructor, así que está cubierto.</dd>
+      <dt>¿Por qué "Dijkstra lazy" y no mantener una estructura con decrease-key?</dt>
+      <dd>Porque la <code>PriorityQueue</code> de la JDK no expone <em>decrease-key</em> eficiente. La alternativa sería implementar un Fibonacci heap desde cero — sobre-ingeniería para el scope. La variante lazy es el idiom estándar con <code>PriorityQueue</code>: insertamos entradas nuevas y descartamos las obsoletas al extraerlas. Funciona y mantiene la misma cota <code>O((V+E) log V)</code>.</dd>
+    </dl>
+  </section>
+
+  <nav class="prev-next">
+    <a class="prev" href="/cuestionario/exposicion/arquitectura">
+      <span class="nav-label">← Anterior</span>
+      <span class="nav-title">Exposición de arquitectura</span>
+    </a>
+    <a class="next" href="/cuestionario/exposicion">
+      <span class="nav-label">Volver →</span>
+      <span class="nav-title">Hub de exposiciones</span>
+    </a>
+  </nav>
+
+</div>
+
+<script src="/cuestionario/assets/nav.js"></script>
+</body>
+</html>
