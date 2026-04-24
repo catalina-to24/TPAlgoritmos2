@@ -66,6 +66,7 @@ public class WebServer {
 
         server.createContext("/api/inventario/cargar", json(this::cargarInventario));
         server.createContext("/api/estado", json(this::estado));
+        server.createContext("/api/centro/demorados", json(this::centroDemorados));
         server.createContext("/api/centro/paquetes", json(this::centroPaquetes));
         server.createContext("/api/camion/cargar", json(this::cargarCamion));
         server.createContext("/api/camion/deshacer", json(this::deshacerCamion));
@@ -139,6 +140,18 @@ public class WebServer {
         }
     }
 
+    /** GET /api/centro/demorados — paquetes pendientes con mas de 30 minutos en espera. */
+    private String centroDemorados(HttpExchange ex) {
+        requireMethod(ex, "GET");
+        synchronized (service) {
+            var demorados = service.verDemoradosCentro();
+            return JsonWriter.toJson(Map.of(
+                    "cantidad", demorados.size(),
+                    "paquetes", demorados
+            ));
+        }
+    }
+
     /**
      * GET/POST /api/centro/paquetes — GET devuelve los pendientes; POST da de alta
      * un paquete manual. Se combina en un handler porque comparten recurso
@@ -163,8 +176,9 @@ public class WebServer {
         String destino = (String) body.get("destino");
         String contenido = (String) body.getOrDefault("contenido", "");
         boolean urgente = Boolean.TRUE.equals(body.get("urgente"));
+        int minutosIngreso = body.get("minutosIngreso") instanceof Number n ? n.intValue() : 0;
         synchronized (service) {
-            Paquete<String> p = service.crearPaqueteManual(id, peso, destino, contenido, urgente);
+            Paquete<String> p = service.crearPaqueteManual(id, peso, destino, contenido, urgente, minutosIngreso);
             return JsonWriter.toJson(p);
         }
     }

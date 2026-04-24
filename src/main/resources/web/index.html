@@ -344,6 +344,10 @@
                   <input type="checkbox" name="urgente" class="h-4 w-4 accent-brand rounded">
                   <span class="text-sm text-ink-700">Marcar como urgente</span>
                 </label>
+                <div>
+                  <label class="label">Minutos desde ingreso</label>
+                  <input name="minutosIngreso" type="number" min="0" value="0" class="field">
+                </div>
                 <button type="submit" class="btn-primary w-full">
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                   Registrar paquete
@@ -372,6 +376,26 @@
                 <h3>No hay paquetes pendientes</h3>
                 <p>Registrá uno nuevo o cargá el inventario de ejemplo.</p>
               </div>
+            </div>
+          </div>
+
+          <!-- Demorados -->
+          <div class="card">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="card-title">Paquetes demorados</h2>
+                <p class="card-subtitle">Paquetes con más de 30 minutos en espera.</p>
+              </div>
+              <button id="btnDemorados" class="btn-secondary">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Consultar demorados
+              </button>
+            </div>
+            <ul id="listaDemorados" class="mt-5 space-y-2"></ul>
+            <div id="demoradosEmpty" class="empty hidden">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <h3>No hay paquetes demorados</h3>
+              <p>Todos los paquetes pendientes tienen menos de 30 minutos en espera.</p>
             </div>
           </div>
         </section>

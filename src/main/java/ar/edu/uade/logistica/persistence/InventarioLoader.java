@@ -59,7 +59,8 @@ public class InventarioLoader {
                     getDouble(paqueteMap, "peso"),
                     getString(paqueteMap, "destino"),
                     getString(paqueteMap, "contenido"),
-                    getBoolean(paqueteMap, "urgente")
+                    getBoolean(paqueteMap, "urgente"),
+                    getInt(paqueteMap, "minutosIngreso")
             ));
         }
         return paquetes;

@@ -51,6 +51,7 @@ public class MenuConsola {
                     case "7" -> auditarDepositos();
                     case "8" -> verDepositosPorNivel();
                     case "9" -> calcularDistanciaMinima();
+                    case "10" -> verPaquetesDemorados();
                     case "0" -> salir = true;
                     default -> System.out.println("Opcion invalida.");
                 }
@@ -73,6 +74,7 @@ public class MenuConsola {
         System.out.println("7. Ejecutar auditoria de depositos");
         System.out.println("8. Mostrar depositos por nivel");
         System.out.println("9. Calcular distancia minima entre depositos");
+        System.out.println("10. Ver paquetes demorados en centro de distribucion");
         System.out.println("0. Salir");
         System.out.print("Seleccione una opcion: ");
     }
@@ -100,8 +102,9 @@ public class MenuConsola {
         System.out.print("Contenido: ");
         String contenido = scanner.nextLine().trim();
         boolean urgente = leerBoolean("Es urgente? (s/n): ");
+        int minutosIngreso = leerEntero("Minutos desde ingreso: ");
 
-        Paquete<String> paquete = service.crearPaqueteManual(id, peso, destino, contenido, urgente);
+        Paquete<String> paquete = service.crearPaqueteManual(id, peso, destino, contenido, urgente, minutosIngreso);
         System.out.println("Paquete agregado al centro de distribucion: " + paquete);
     }
 
@@ -161,6 +164,17 @@ public class MenuConsola {
             return;
         }
         depositos.forEach(d -> System.out.println(d.getId() + " - " + d.getNombre()));
+    }
+
+    /** Lista los paquetes pendientes con mas de 30 minutos en espera. */
+    private void verPaquetesDemorados() {
+        List<Paquete<?>> demorados = service.verDemoradosCentro();
+        if (demorados.isEmpty()) {
+            System.out.println("No hay paquetes demorados (mas de 30 minutos).");
+            return;
+        }
+        System.out.println("Paquetes demorados (mas de 30 min en espera):");
+        demorados.forEach(System.out::println);
     }
 
     /** Dijkstra entre los dos depositos que pida el usuario. */

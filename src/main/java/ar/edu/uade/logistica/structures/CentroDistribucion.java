@@ -86,6 +86,26 @@ public class CentroDistribucion {
     }
 
     /**
+     * Devuelve los paquetes pendientes demorados, es decir, aquellos con mas de 30 minutos
+     * en espera ({@code minutosIngreso > 30}). El resultado respeta el orden de prioridad
+     * de la cola.
+     *
+     * @implNote Complejidad: O(n log n) tiempo / O(n) espacio — se drena una copia de la
+     * heap para recorrer en orden de prioridad, igual que {@link #verPendientes()}.
+     */
+    public List<Paquete<?>> verDemorados() {
+        Queue<Entrada> copia = new PriorityQueue<>(cola);
+        List<Paquete<?>> resultado = new ArrayList<>();
+        while (!copia.isEmpty()) {
+            Paquete<?> p = copia.poll().paquete();
+            if (p.getMinutosIngreso() > 30) {
+                resultado.add(p);
+            }
+        }
+        return resultado;
+    }
+
+    /**
      * Wrapper interno que asocia cada paquete a su prioridad y orden de llegada.
      * Es un {@code record} porque no tiene comportamiento y solo agrupa datos.
      */

@@ -20,8 +20,8 @@ class CamionTest {
     @Test
     void descargaEnOrdenLifoYPermiteDeshacer() {
         Camion camion = new Camion();
-        Paquete<String> primero = new Paquete<>("A", 10, "BA", "Electronica", false);
-        Paquete<String> segundo = new Paquete<>("B", 15, "CBA", "Fragil", true);
+        Paquete<String> primero = new Paquete<>("A", 10, "BA", "Electronica", false, 0);
+        Paquete<String> segundo = new Paquete<>("B", 15, "CBA", "Fragil", true, 0);
 
         camion.cargar(primero);
         camion.cargar(segundo);

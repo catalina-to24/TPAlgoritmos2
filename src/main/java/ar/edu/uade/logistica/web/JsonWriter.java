@@ -125,6 +125,7 @@ public final class JsonWriter {
         }
         sb.append(',');
         writeString(sb, "urgente"); sb.append(':').append(p.isUrgente()).append(',');
+        writeString(sb, "minutosIngreso"); sb.append(':').append(p.getMinutosIngreso()).append(',');
         writeString(sb, "prioritario"); sb.append(':').append(p.requierePrioridad());
         sb.append('}');
     }

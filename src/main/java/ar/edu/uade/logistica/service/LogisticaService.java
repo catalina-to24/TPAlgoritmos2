@@ -60,8 +60,8 @@ public class LogisticaService {
      * Alta manual de paquete (no viene del JSON). Se encola directo en el centro para
      * que entre al mismo flujo de prioridad que los cargados desde inventario.
      */
-    public Paquete<String> crearPaqueteManual(String id, double peso, String destino, String contenido, boolean urgente) {
-        Paquete<String> paquete = new Paquete<>(id, peso, destino, contenido, urgente);
+    public Paquete<String> crearPaqueteManual(String id, double peso, String destino, String contenido, boolean urgente, int minutosIngreso) {
+        Paquete<String> paquete = new Paquete<>(id, peso, destino, contenido, urgente, minutosIngreso);
         centroDistribucion.recibir(paquete);
         return paquete;
     }
@@ -94,6 +94,11 @@ public class LogisticaService {
     /** Snapshot de los pendientes del centro ordenados por prioridad y llegada. */
     public List<Paquete<?>> verPendientesCentro() {
         return centroDistribucion.verPendientes();
+    }
+
+    /** Paquetes pendientes demorados (mas de 30 minutos en espera). */
+    public List<Paquete<?>> verDemoradosCentro() {
+        return centroDistribucion.verDemorados();
     }
 
     /** Listado in-order de depositos (ordenados ascendente por id). */

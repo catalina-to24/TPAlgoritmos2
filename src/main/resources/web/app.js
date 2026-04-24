@@ -189,11 +189,39 @@ function renderPendientes(paquetes) {
         <div class="h-8 w-8 rounded-lg bg-ink-100 flex items-center justify-center text-xs font-bold text-ink-600 flex-shrink-0">${i + 1}</div>
         <div class="min-w-0">
           <p class="font-semibold text-ink-900">${escapeHtml(p.id)}</p>
-          <p class="text-xs text-ink-500 truncate">${escapeHtml(p.destino)} · ${p.peso} kg${p.contenido ? ' · ' + escapeHtml(p.contenido) : ''}</p>
+          <p class="text-xs text-ink-500 truncate">${escapeHtml(p.destino)} · ${p.peso} kg · ${p.minutosIngreso} min${p.contenido ? ' · ' + escapeHtml(p.contenido) : ''}</p>
         </div>
       </div>
       <div class="flex items-center gap-2 flex-shrink-0">
         ${prioridadBadge(p)}
+      </div>`;
+    ul.appendChild(li);
+  });
+}
+
+function renderDemorados(paquetes) {
+  const ul = $('#listaDemorados');
+  const empty = $('#demoradosEmpty');
+  ul.innerHTML = '';
+  if (paquetes.length === 0) {
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  paquetes.forEach((p, i) => {
+    const li = document.createElement('li');
+    li.className = 'list-row';
+    li.innerHTML = `
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="h-8 w-8 rounded-lg bg-danger/10 text-danger flex items-center justify-center text-xs font-bold flex-shrink-0">${i + 1}</div>
+        <div class="min-w-0">
+          <p class="font-semibold text-ink-900">${escapeHtml(p.id)}</p>
+          <p class="text-xs text-ink-500 truncate">${escapeHtml(p.destino)} · ${p.peso} kg · ${p.minutosIngreso} min</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        ${prioridadBadge(p)}
+        <span class="badge badge-warning">${p.minutosIngreso} min</span>
       </div>`;
     ul.appendChild(li);
   });
@@ -358,6 +386,7 @@ function bindActions() {
       destino: fd.get('destino'),
       contenido: fd.get('contenido') || '',
       urgente: fd.get('urgente') === 'on',
+      minutosIngreso: parseInt(fd.get('minutosIngreso') || '0', 10),
     };
     try {
       const p = await api('POST', '/api/centro/paquetes', body);
@@ -366,6 +395,14 @@ function bindActions() {
       ev.target.reset();
       await refreshEstado();
       await refreshPendientes();
+    } catch (e) { toast('err', e.message); }
+  });
+
+  $('#btnDemorados')?.addEventListener('click', async () => {
+    try {
+      const r = await api('GET', '/api/centro/demorados');
+      renderDemorados(r.paquetes || []);
+      toast('info', `${r.cantidad} paquete${r.cantidad === 1 ? '' : 's'} demorado${r.cantidad === 1 ? '' : 's'}`);
     } catch (e) { toast('err', e.message); }
   });
 
