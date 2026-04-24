@@ -21,6 +21,7 @@ public class Paquete<T> {
     private final String destino;
     private final T contenido;
     private final boolean urgente;
+    private final int minutosIngreso;
 
     /**
      * Construye un paquete validando las invariantes del dominio.
@@ -29,9 +30,10 @@ public class Paquete<T> {
      * el resto del pipeline: encolarlo, apilarlo y despues descubrir que el peso es cero
      * complica la trazabilidad del error.
      *
-     * @throws IllegalArgumentException si el id o destino estan vacios, o el peso no es positivo.
+     * @throws IllegalArgumentException si el id o destino estan vacios, el peso no es positivo,
+     *                                    o minutosIngreso es negativo.
      */
-    public Paquete(String id, double peso, String destino, T contenido, boolean urgente) {
+    public Paquete(String id, double peso, String destino, T contenido, boolean urgente, int minutosIngreso) {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("El ID del paquete es obligatorio.");
         }
@@ -41,11 +43,15 @@ public class Paquete<T> {
         if (peso <= 0) {
             throw new IllegalArgumentException("El peso del paquete debe ser mayor a cero.");
         }
+        if (minutosIngreso < 0) {
+            throw new IllegalArgumentException("Los minutos de ingreso no pueden ser negativos.");
+        }
         this.id = id;
         this.peso = peso;
         this.destino = destino;
         this.contenido = contenido;
         this.urgente = urgente;
+        this.minutosIngreso = minutosIngreso;
     }
 
     /** Identificador unico del paquete; usado como clave de igualdad. */
@@ -73,6 +79,11 @@ public class Paquete<T> {
         return urgente;
     }
 
+    /** Minutos transcurridos desde que el paquete ingresó al sistema. */
+    public int getMinutosIngreso() {
+        return minutosIngreso;
+    }
+
     /**
      * Indica si el paquete debe tratarse como prioritario en el centro de distribucion.
      * Por consigna, son prioritarios los urgentes o los que pesan mas de 50 kg.
@@ -92,6 +103,7 @@ public class Paquete<T> {
                 ", destino='" + destino + '\'' +
                 ", contenido=" + contenido +
                 ", urgente=" + urgente +
+                ", minutosIngreso=" + minutosIngreso +
                 '}';
     }
 

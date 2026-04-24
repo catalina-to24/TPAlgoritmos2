@@ -5,21 +5,24 @@
       "peso": 15.0,
       "destino": "Buenos Aires",
       "contenido": "Libros",
-      "urgente": false
+      "urgente": false,
+      "minutosIngreso": 20
     },
     {
       "id": "PKG-LOCAL-02",
       "peso": 60.0,
       "destino": "Cordoba",
       "contenido": "Insumos medicos",
-      "urgente": false
+      "urgente": false,
+      "minutosIngreso": 35
     },
     {
       "id": "PKG-LOCAL-03",
       "peso": 7.5,
       "destino": "Rosario",
       "contenido": "Documentacion",
-      "urgente": true
+      "urgente": true,
+      "minutosIngreso": 10
     }
   ],
   "depositos": [

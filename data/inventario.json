@@ -5,21 +5,24 @@
       "peso": 12.5,
       "destino": "Buenos Aires",
       "contenido": "Electronica",
-      "urgente": false
+      "urgente": false,
+      "minutosIngreso": 15
     },
     {
       "id": "PKG-002",
       "peso": 72.0,
       "destino": "Cordoba",
       "contenido": "Fragil",
-      "urgente": false
+      "urgente": false,
+      "minutosIngreso": 45
     },
     {
       "id": "PKG-003",
       "peso": 8.2,
       "destino": "Rosario",
       "contenido": "Alimentos",
-      "urgente": true
+      "urgente": true,
+      "minutosIngreso": 38
     }
   ],
   "depositos": [

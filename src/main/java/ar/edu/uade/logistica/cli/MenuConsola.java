@@ -3,7 +3,6 @@ package ar.edu.uade.logistica.cli;
 import ar.edu.uade.logistica.model.Deposito;
 import ar.edu.uade.logistica.model.Paquete;
 import ar.edu.uade.logistica.service.LogisticaService;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -51,6 +50,7 @@ public class MenuConsola {
                     case "7" -> auditarDepositos();
                     case "8" -> verDepositosPorNivel();
                     case "9" -> calcularDistanciaMinima();
+                    case "10" -> verPaquetesDemorados();
                     case "0" -> salir = true;
                     default -> System.out.println("Opcion invalida.");
                 }
@@ -73,6 +73,7 @@ public class MenuConsola {
         System.out.println("7. Ejecutar auditoria de depositos");
         System.out.println("8. Mostrar depositos por nivel");
         System.out.println("9. Calcular distancia minima entre depositos");
+        System.out.println("10. Ver paquetes pendientes demorados (>30 min)");
         System.out.println("0. Salir");
         System.out.print("Seleccione una opcion: ");
     }
@@ -169,6 +170,19 @@ public class MenuConsola {
         int destino = leerEntero("Deposito destino: ");
         int distancia = service.distanciaMinimaEntreDepositos(origen, destino);
         System.out.println("Distancia minima: " + distancia + " km");
+    }
+
+    /** Lista los paquetes que han estado mas de 30 minutos en el centro de distribucion. */
+    private void verPaquetesDemorados() {
+        List<Paquete<?>> demorados = service.verPaquetesDemorados();
+        if (demorados.isEmpty()) {
+            System.out.println("No hay paquetes demorados (todos estan dentro del plazo).");
+            return;
+        }
+        System.out.println("Paquetes demorados (ordenados por tiempo en espera):");
+        demorados.forEach(p -> System.out.println(
+                "  " + p.getId() + " - " + p.getMinutosIngreso() + " min - Destino: " + p.getDestino()
+        ));
     }
 
     /**

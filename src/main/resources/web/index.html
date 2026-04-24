@@ -136,6 +136,10 @@
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
           Paquetes
         </a>
+        <a href="#/demorados" class="nav-item" data-route="demorados">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Paquetes Demorados
+        </a>
         <a href="#/camion" class="nav-item" data-route="camion">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h11v9H3zM14 10h4l3 3v3h-7m-4 0a2 2 0 104 0m7 0a2 2 0 104 0"/></svg>
           Camión
@@ -376,6 +380,41 @@
           </div>
         </section>
 
+        <!-- ======================== VIEW: DEMORADOS ======================== -->
+        <section data-view="demorados" class="view space-y-6 hidden">
+          <div class="grid grid-cols-1 gap-6">
+            <div class="card">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="card-title">Paquetes demorados</h2>
+                  <p class="card-subtitle">Paquetes que llevan más de 30 minutos en espera (mayor prioridad de atención).</p>
+                </div>
+                <button id="btnRefreshDemorados" class="btn-secondary" title="Actualizar lista">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  Actualizar
+                </button>
+              </div>
+              <div id="demoradosStats" class="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="stat">
+                  <div class="stat-icon bg-warning-soft text-warning">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  </div>
+                  <div>
+                    <p class="stat-label">Demorados</p>
+                    <p class="stat-value" id="demoradosCount">0</p>
+                  </div>
+                </div>
+              </div>
+              <ul id="listaDemorados" class="mt-5 space-y-2"></ul>
+              <div id="demoradosEmpty" class="empty hidden">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <h3>Excelente servicio</h3>
+                <p>No hay paquetes demorados. Todos los paquetes están dentro del plazo.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- ======================== VIEW: CAMION ======================== -->
         <section data-view="camion" class="view space-y-6 hidden">
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -600,6 +639,7 @@
     <nav class="absolute left-0 top-0 bottom-0 w-64 bg-white shadow-pop p-4 space-y-1">
       <a href="#/inicio" data-route="inicio" data-close-nav class="nav-item">Inicio</a>
       <a href="#/paquetes" data-route="paquetes" data-close-nav class="nav-item">Paquetes</a>
+      <a href="#/demorados" data-route="demorados" data-close-nav class="nav-item">Paquetes Demorados</a>
       <a href="#/camion" data-route="camion" data-close-nav class="nav-item">Camión</a>
       <a href="#/depositos" data-route="depositos" data-close-nav class="nav-item">Depósitos</a>
       <a href="#/rutas" data-route="rutas" data-close-nav class="nav-item">Rutas</a>

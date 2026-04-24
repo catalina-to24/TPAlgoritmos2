@@ -13,6 +13,7 @@ const state = {
 const PAGE_META = {
   inicio:    { title: 'Inicio',    subtitle: 'Panorama general de la operación' },
   paquetes:  { title: 'Paquetes',  subtitle: 'Registrá y procesá paquetes pendientes' },
+  demorados: { title: 'Paquetes Demorados', subtitle: 'Paquetes que llevan más de 30 minutos en espera' },
   camion:    { title: 'Camión',    subtitle: 'Carga actual y operaciones de descarga' },
   depositos: { title: 'Depósitos', subtitle: 'Red de depósitos y auditoría' },
   rutas:     { title: 'Rutas',     subtitle: 'Calculá la ruta más corta entre depósitos' },
@@ -87,6 +88,7 @@ function navigate() {
   // per-view fetches
   if (route === 'inicio')    refreshAll();
   if (route === 'paquetes')  { refreshEstado(); refreshPendientes(); }
+  if (route === 'demorados') { refreshEstado(); refreshPaquetesDemorados(); }
   if (route === 'camion')    { refreshEstado(); refreshCamion(); }
   if (route === 'depositos') refreshDepositos();
   if (route === 'rutas')     { refreshDepositos().then(refreshRutas); }
@@ -114,6 +116,13 @@ async function refreshPendientes() {
   try {
     const r = await api('GET', '/api/centro/paquetes');
     renderPendientes(r.paquetes || []);
+  } catch (e) { toast('err', e.message); }
+}
+
+async function refreshPaquetesDemorados() {
+  try {
+    const r = await api('GET', '/api/centro/paquetes/demorados');
+    renderDemorados(r.paquetes || []);
   } catch (e) { toast('err', e.message); }
 }
 
@@ -194,6 +203,40 @@ function renderPendientes(paquetes) {
       </div>
       <div class="flex items-center gap-2 flex-shrink-0">
         ${prioridadBadge(p)}
+      </div>`;
+    ul.appendChild(li);
+  });
+}
+
+function renderDemorados(paquetes) {
+  const ul = $('#listaDemorados');
+  const empty = $('#demoradosEmpty');
+  const count = $('#demoradosCount');
+  ul.innerHTML = '';
+  count.textContent = paquetes.length;
+  if (paquetes.length === 0) {
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  paquetes.forEach((p) => {
+    const li = document.createElement('li');
+    li.className = 'list-row';
+    const urgenciaColor = p.minutosIngreso > 60 ? 'bg-danger-soft text-danger' : 'bg-warning-soft text-warning';
+    li.innerHTML = `
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="h-8 w-8 rounded-lg ${urgenciaColor} flex items-center justify-center text-xs font-bold flex-shrink-0">
+          ⏱
+        </div>
+        <div class="min-w-0">
+          <p class="font-semibold text-ink-900">${escapeHtml(p.id)}</p>
+          <p class="text-xs text-ink-500 truncate">${escapeHtml(p.destino)} · ${p.peso} kg · ${p.minutosIngreso} min en espera</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <span class="badge ${p.minutosIngreso > 60 ? 'bg-danger-soft text-danger' : 'bg-warning-soft text-warning'}">
+          +${p.minutosIngreso} min
+        </span>
       </div>`;
     ul.appendChild(li);
   });
@@ -376,6 +419,14 @@ function bindActions() {
       logLine(`Enviado al camión: ${p.id} (${p.destino})`, 'ok');
       await refreshEstado();
       await refreshPendientes();
+    } catch (e) { toast('err', e.message); }
+  });
+
+  $('#btnRefreshDemorados')?.addEventListener('click', async () => {
+    try {
+      logLine('Actualizando lista de paquetes demorados...', 'info');
+      await refreshPaquetesDemorados();
+      toast('ok', 'Lista actualizada');
     } catch (e) { toast('err', e.message); }
   });
 

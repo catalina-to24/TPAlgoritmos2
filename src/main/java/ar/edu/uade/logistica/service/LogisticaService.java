@@ -9,7 +9,6 @@ import ar.edu.uade.logistica.structures.ArbolDepositos;
 import ar.edu.uade.logistica.structures.Camion;
 import ar.edu.uade.logistica.structures.CentroDistribucion;
 import ar.edu.uade.logistica.structures.GrafoDepositos;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -59,9 +58,10 @@ public class LogisticaService {
     /**
      * Alta manual de paquete (no viene del JSON). Se encola directo en el centro para
      * que entre al mismo flujo de prioridad que los cargados desde inventario.
+     * Se inicializa con minutosIngreso = 0 (acaba de entrar al sistema).
      */
     public Paquete<String> crearPaqueteManual(String id, double peso, String destino, String contenido, boolean urgente) {
-        Paquete<String> paquete = new Paquete<>(id, peso, destino, contenido, urgente);
+        Paquete<String> paquete = new Paquete<>(id, peso, destino, contenido, urgente, 0);
         centroDistribucion.recibir(paquete);
         return paquete;
     }
@@ -94,6 +94,11 @@ public class LogisticaService {
     /** Snapshot de los pendientes del centro ordenados por prioridad y llegada. */
     public List<Paquete<?>> verPendientesCentro() {
         return centroDistribucion.verPendientes();
+    }
+
+    /** Snapshot de los paquetes demorados (> 30 minutos) ordenados por antigüedad decreciente. */
+    public List<Paquete<?>> verPaquetesDemorados() {
+        return centroDistribucion.verPaquetesDemorados();
     }
 
     /** Listado in-order de depositos (ordenados ascendente por id). */

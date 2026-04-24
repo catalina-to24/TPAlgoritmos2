@@ -1,7 +1,6 @@
 package ar.edu.uade.logistica.structures;
 
 import ar.edu.uade.logistica.model.Paquete;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -83,6 +82,22 @@ public class CentroDistribucion {
             resultado.add(copia.poll().paquete());
         }
         return resultado;
+    }
+
+    /**
+     * Devuelve los paquetes pendientes que llevan más de 30 minutos en el centro,
+     * ordenados por tiempo de permanencia decreciente (más demorados primero).
+     *
+     * <p>Un paquete se considera demorado si {@code minutosIngreso > 30}.
+     * Estos paquetes tienen prioridad de atención para mantener el SLA.
+     *
+     * Complejidad: O(n) tiempo, O(k) espacio (donde k es la cantidad de demorados).
+     */
+    public List<Paquete<?>> verPaquetesDemorados() {
+        return verPendientes().stream()
+                .filter(p -> p.getMinutosIngreso() > 30)
+                .sorted((a, b) -> Integer.compare(b.getMinutosIngreso(), a.getMinutosIngreso()))
+                .toList();
     }
 
     /**

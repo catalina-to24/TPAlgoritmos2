@@ -4,7 +4,6 @@ import ar.edu.uade.logistica.model.Deposito;
 import ar.edu.uade.logistica.model.Inventario;
 import ar.edu.uade.logistica.model.Paquete;
 import ar.edu.uade.logistica.model.Ruta;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -59,7 +58,8 @@ public class InventarioLoader {
                     getDouble(paqueteMap, "peso"),
                     getString(paqueteMap, "destino"),
                     getString(paqueteMap, "contenido"),
-                    getBoolean(paqueteMap, "urgente")
+                    getBoolean(paqueteMap, "urgente"),
+                    getInt(paqueteMap, "minutosIngreso")
             ));
         }
         return paquetes;

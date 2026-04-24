@@ -6,7 +6,6 @@ import ar.edu.uade.logistica.service.LogisticaService;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -66,6 +65,7 @@ public class WebServer {
 
         server.createContext("/api/inventario/cargar", json(this::cargarInventario));
         server.createContext("/api/estado", json(this::estado));
+        server.createContext("/api/centro/paquetes/demorados", json(this::paquetesDemorados));
         server.createContext("/api/centro/paquetes", json(this::centroPaquetes));
         server.createContext("/api/camion/cargar", json(this::cargarCamion));
         server.createContext("/api/camion/deshacer", json(this::deshacerCamion));
@@ -166,6 +166,20 @@ public class WebServer {
         synchronized (service) {
             Paquete<String> p = service.crearPaqueteManual(id, peso, destino, contenido, urgente);
             return JsonWriter.toJson(p);
+        }
+    }
+
+    /**
+     * GET /api/centro/paquetes/demorados — devuelve los paquetes pendientes que llevan
+     * más de 30 minutos en espera, ordenados por tiempo de permanencia decreciente.
+     */
+    private String paquetesDemorados(HttpExchange ex) {
+        requireMethod(ex, "GET");
+        synchronized (service) {
+            return JsonWriter.toJson(Map.of(
+                    "cantidad", service.verPaquetesDemorados().size(),
+                    "paquetes", service.verPaquetesDemorados()
+            ));
         }
     }
 
