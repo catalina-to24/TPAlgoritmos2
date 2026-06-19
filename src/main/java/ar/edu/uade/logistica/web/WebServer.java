@@ -410,6 +410,8 @@ public class WebServer {
             //   /cuestionario.html (legacy) -> /cuestionario (ruta nueva)
             if (path.equals("/")) {
                 path = "/index.html";
+            } else if (path.equals("/arbolbinario") || path.equals("/arbolbinario/")) {
+                path = "/arbolbinario.html";
             } else if (path.equals("/cuestionario.html")) {
                 ex.getResponseHeaders().set("Location", "/cuestionario");
                 ex.sendResponseHeaders(302, -1);

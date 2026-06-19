@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Árbol Binario de Búsqueda — Recorridos y Búsqueda</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='25' r='14' fill='%234f46e5'/><circle cx='25' cy='70' r='14' fill='%238b5cf6'/><circle cx='75' cy='70' r='14' fill='%238b5cf6'/><path d='M50 25 L25 70 M50 25 L75 70' stroke='%2394a3b8' stroke-width='4'/></svg>" />
+  <style>
+    /* ===========================================================
+       Tema (claro/oscuro) via variables CSS. Reusa la clave de
+       localStorage 'tpa2_theme' del resto del material de estudio.
+       =========================================================== */
+    :root, [data-theme="dark"] {
+      --bg:        #0f172a;
+      --bg-elev:   #1e293b;
+      --bg-soft:   #334155;
+      --border:    #334155;
+      --text:      #e2e8f0;
+      --text-dim:  #94a3b8;
+      --accent:    #818cf8;
+      --accent-strong: #4f46e5;
+      --node:      #1e293b;
+      --node-stroke: #475569;
+      --node-text: #e2e8f0;
+      --edge:      #475569;
+      --active:    #f59e0b;       /* nodo siendo visitado */
+      --active-text: #0f172a;
+      --visited:   #10b981;       /* ya visitado en el recorrido */
+      --visited-text: #052e1a;
+      --path:      #38bdf8;       /* camino de busqueda */
+      --found:     #10b981;
+      --notfound:  #ef4444;
+      --shadow:    rgba(0,0,0,.35);
+    }
+    [data-theme="light"] {
+      --bg:        #f1f5f9;
+      --bg-elev:   #ffffff;
+      --bg-soft:   #f8fafc;
+      --border:    #e2e8f0;
+      --text:      #1e293b;
+      --text-dim:  #64748b;
+      --accent:    #4f46e5;
+      --accent-strong: #4338ca;
+      --node:      #ffffff;
+      --node-stroke: #cbd5e1;
+      --node-text: #1e293b;
+      --edge:      #cbd5e1;
+      --active:    #f59e0b;
+      --active-text: #ffffff;
+      --visited:   #10b981;
+      --visited-text: #ffffff;
+      --path:      #0ea5e9;
+      --found:     #10b981;
+      --notfound:  #ef4444;
+      --shadow:    rgba(15,23,42,.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      transition: background .25s, color .25s;
+    }
+
+    /* ---- Header ---- */
+    header.topbar {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; align-items: center; gap: .9rem;
+      padding: .85rem 1.4rem;
+      background: var(--bg-elev);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 6px var(--shadow);
+    }
+    .brand-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+      display: grid; place-items: center; flex-shrink: 0;
+    }
+    .brand-icon svg { width: 24px; height: 24px; }
+    .brand-text h1 { font-size: 1.05rem; font-weight: 700; line-height: 1.15; }
+    .brand-text p  { font-size: .78rem; color: var(--text-dim); }
+    .topbar-spacer { flex: 1; }
+    .theme-toggle {
+      border: 1px solid var(--border); background: var(--bg-soft);
+      color: var(--text); border-radius: 999px;
+      width: 38px; height: 38px; cursor: pointer; font-size: 1.1rem;
+      display: grid; place-items: center; transition: background .15s;
+    }
+    .theme-toggle:hover { background: var(--border); }
+
+    /* ---- Layout ---- */
+    .wrap {
+      max-width: 1280px; margin: 0 auto; padding: 1.4rem;
+      display: grid; gap: 1.2rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 1000px) {
+      .wrap { grid-template-columns: 320px 1fr; align-items: start; }
+    }
+
+    .card {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.1rem 1.2rem;
+      box-shadow: 0 2px 10px var(--shadow);
+    }
+    .card h2 {
+      font-size: .82rem; text-transform: uppercase; letter-spacing: .06em;
+      color: var(--text-dim); margin-bottom: .8rem; font-weight: 700;
+    }
+
+    /* ---- Controles ---- */
+    .control-group { margin-bottom: 1.3rem; }
+    .control-group:last-child { margin-bottom: 0; }
+    .control-row { display: flex; gap: .5rem; margin-bottom: .55rem; flex-wrap: wrap; }
+    input[type="number"] {
+      flex: 1; min-width: 0;
+      padding: .55rem .7rem; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--bg-soft);
+      color: var(--text); font-size: .95rem; font-family: inherit;
+    }
+    input[type="number"]:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+    .btn {
+      padding: .55rem .85rem; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--bg-soft); color: var(--text); cursor: pointer;
+      font-size: .88rem; font-weight: 600; font-family: inherit;
+      transition: background .15s, transform .05s, opacity .15s;
+      display: inline-flex; align-items: center; gap: .35rem;
+    }
+    .btn:hover:not(:disabled) { background: var(--border); }
+    .btn:active:not(:disabled) { transform: translateY(1px); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-primary { background: var(--accent-strong); border-color: var(--accent-strong); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
+    .btn-traversal { flex: 1 1 calc(50% - .25rem); justify-content: center; }
+    .btn-traversal.active { background: var(--accent-strong); border-color: var(--accent-strong); color: #fff; }
+    .btn-ghost { background: transparent; }
+
+    .slider-row { display: flex; align-items: center; gap: .6rem; margin-top: .2rem; }
+    .slider-row label { font-size: .8rem; color: var(--text-dim); white-space: nowrap; }
+    input[type="range"] { flex: 1; accent-color: var(--accent-strong); cursor: pointer; }
+
+    .hint { font-size: .76rem; color: var(--text-dim); margin-top: .35rem; }
+
+    /* ---- Visualizacion ---- */
+    .viz-card { padding: .6rem; overflow: hidden; }
+    .status-bar {
+      display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+      padding: .55rem .8rem; margin-bottom: .5rem;
+      font-size: .9rem; min-height: 2.4rem;
+    }
+    .status-bar .label-strong { font-weight: 700; color: var(--accent); }
+    svg#tree { width: 100%; height: auto; display: block; min-height: 340px; }
+
+    /* nodos */
+    .node circle {
+      fill: var(--node); stroke: var(--node-stroke); stroke-width: 2.5;
+      transition: fill .25s, stroke .25s, r .2s;
+    }
+    .node text {
+      fill: var(--node-text); font-size: 15px; font-weight: 700;
+      text-anchor: middle; dominant-baseline: central;
+      transition: fill .25s; pointer-events: none;
+    }
+    .node.active circle { fill: var(--active); stroke: var(--active); }
+    .node.active text   { fill: var(--active-text); }
+    .node.visited circle { fill: var(--visited); stroke: var(--visited); }
+    .node.visited text   { fill: var(--visited-text); }
+    .node.path circle   { stroke: var(--path); stroke-width: 4; }
+    .node.found circle  { fill: var(--found); stroke: var(--found); }
+    .node.found text    { fill: #fff; }
+    .node.notfound circle { stroke: var(--notfound); stroke-width: 4; }
+    .edge { stroke: var(--edge); stroke-width: 2.5; transition: stroke .25s; }
+    .edge.path { stroke: var(--path); stroke-width: 4; }
+
+    /* secuencia de visita */
+    .sequence {
+      display: flex; flex-wrap: wrap; gap: .4rem; align-items: center;
+      margin-top: .6rem; padding: .6rem .8rem; min-height: 2.6rem;
+      background: var(--bg-soft); border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .seq-chip {
+      display: inline-grid; place-items: center;
+      min-width: 30px; height: 30px; padding: 0 .5rem;
+      border-radius: 8px; background: var(--bg-elev);
+      border: 1px solid var(--border); font-weight: 700; font-size: .88rem;
+      animation: pop .25s ease-out;
+    }
+    .seq-chip.current { background: var(--active); color: var(--active-text); border-color: var(--active); }
+    .seq-arrow { color: var(--text-dim); }
+    .seq-empty { color: var(--text-dim); font-size: .85rem; }
+    @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    /* ---- Explicaciones ---- */
+    .explain-grid { display: grid; gap: .8rem; grid-template-columns: 1fr; margin-top: 1.2rem; }
+    @media (min-width: 640px) { .explain-grid { grid-template-columns: 1fr 1fr; } }
+    .explain {
+      background: var(--bg-elev); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1rem 1.1rem;
+      border-left: 4px solid var(--accent-strong);
+    }
+    .explain h3 { font-size: .95rem; margin-bottom: .35rem; display: flex; align-items: center; gap: .4rem; }
+    .explain p { font-size: .86rem; color: var(--text-dim); }
+    .explain code {
+      background: var(--bg-soft); padding: .1rem .4rem; border-radius: 6px;
+      font-size: .82rem; color: var(--accent); font-family: 'Consolas', monospace;
+    }
+    .tag {
+      font-size: .68rem; font-weight: 700; padding: .12rem .45rem; border-radius: 999px;
+      background: var(--bg-soft); color: var(--text-dim); border: 1px solid var(--border);
+    }
+    .footer-note {
+      grid-column: 1 / -1; text-align: center; font-size: .78rem;
+      color: var(--text-dim); margin-top: .4rem;
+    }
+    .footer-note a { color: var(--accent); text-decoration: none; }
+    .footer-note a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-icon" aria-hidden="true">
+      <svg viewBox="0 0 100 100" fill="none">
+        <path d="M50 25 L25 68 M50 25 L75 68" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="50" cy="25" r="13" fill="#fff"/>
+        <circle cx="25" cy="72" r="13" fill="#fff"/>
+        <circle cx="75" cy="72" r="13" fill="#fff"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <h1>Árbol Binario de Búsqueda</h1>
+      <p>Recorridos &amp; Búsqueda — presentación interactiva</p>
+    </div>
+    <div class="topbar-spacer"></div>
+    <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">🌙</button>
+  </header>
+
+  <div class="wrap">
+    <!-- ============ Controles ============ -->
+    <aside class="card" aria-label="Controles">
+      <div class="control-group">
+        <h2>Construir el árbol</h2>
+        <div class="control-row">
+          <input type="number" id="valorInput" placeholder="Valor (ej. 42)" />
+        </div>
+        <div class="control-row">
+          <button class="btn btn-primary" id="btnInsertar" style="flex:1">＋ Insertar</button>
+          <button class="btn" id="btnEliminar" style="flex:1">－ Eliminar</button>
+        </div>
+        <p class="hint">El BST se ordena solo: menores a la izquierda, mayores a la derecha.</p>
+      </div>
+
+      <div class="control-group">
+        <h2>Recorridos</h2>
+        <div class="control-row">
+          <button class="btn btn-traversal" data-trav="inorden">In-orden</button>
+          <button class="btn btn-traversal" data-trav="preorden">Pre-orden</button>
+        </div>
+        <div class="control-row">
+          <button class="btn btn-traversal" data-trav="postorden">Post-orden</button>
+          <button class="btn btn-traversal" data-trav="niveles">Por niveles</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <h2>Buscar nodo</h2>
+        <div class="control-row">
+          <input type="number" id="buscarInput" placeholder="Valor a buscar" />
+          <button class="btn btn-primary" id="btnBuscar">🔍</button>
+        </div>
+        <p class="hint">Resalta el camino de comparaciones desde la raíz.</p>
+      </div>
+
+      <div class="control-group">
+        <h2>Animación</h2>
+        <div class="control-row">
+          <button class="btn" id="btnPlayPause" style="flex:1">⏸ Pausar</button>
+          <button class="btn" id="btnPaso" style="flex:1">⏭ Paso</button>
+        </div>
+        <div class="slider-row">
+          <label for="velocidad">Velocidad</label>
+          <input type="range" id="velocidad" min="150" max="1400" value="700" step="50" />
+        </div>
+        <div class="control-row" style="margin-top:.7rem">
+          <button class="btn btn-ghost" id="btnReset" style="flex:1">↺ Reiniciar árbol de ejemplo</button>
+        </div>
+        <div class="control-row">
+          <button class="btn btn-ghost" id="btnVaciar" style="flex:1">🗑 Vaciar</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============ Visualizacion ============ -->
+    <main style="display:grid; gap:1.2rem;">
+      <section class="card viz-card" aria-label="Visualización del árbol">
+        <div class="status-bar" id="statusBar">
+          <span>Listo. Insertá valores o ejecutá un recorrido.</span>
+        </div>
+        <svg id="tree" viewBox="0 0 800 400" preserveAspectRatio="xMidYMin meet" role="img" aria-label="Árbol binario"></svg>
+        <div class="sequence" id="sequence">
+          <span class="seq-empty">El orden de visita aparecerá acá.</span>
+        </div>
+      </section>
+
+      <section aria-label="Explicaciones">
+        <div class="explain-grid">
+          <div class="explain">
+            <h3>🌳 BST <span class="tag">invariante</span></h3>
+            <p>En un <strong>Árbol Binario de Búsqueda</strong>, para cada nodo se cumple
+            <code>izquierda &lt; nodo &lt; derecha</code>. Por eso el recorrido <strong>in-orden</strong>
+            siempre devuelve los valores ordenados de menor a mayor.</p>
+          </div>
+          <div class="explain">
+            <h3>↪ In-orden <span class="tag">izq · nodo · der</span></h3>
+            <p>Recorre el subárbol izquierdo, <strong>visita el nodo</strong>, y luego el derecho.
+            Resultado: secuencia <strong>ordenada ascendente</strong>. <code>O(n)</code> tiempo.</p>
+          </div>
+          <div class="explain">
+            <h3>↩ Pre-orden <span class="tag">nodo · izq · der</span></h3>
+            <p><strong>Visita el nodo primero</strong>, después izquierda y derecha. Útil para
+            copiar/serializar el árbol (la raíz sale primero). <code>O(n)</code> tiempo.</p>
+          </div>
+          <div class="explain">
+            <h3>↯ Post-orden <span class="tag">izq · der · nodo</span></h3>
+            <p>Recorre ambos hijos y <strong>visita el nodo al final</strong>. Útil para liberar/borrar
+            o evaluar de abajo hacia arriba. En el TPO se usa para la auditoría. <code>O(n)</code>.</p>
+          </div>
+          <div class="explain">
+            <h3>↡ Por niveles (BFS) <span class="tag">cola</span></h3>
+            <p>Recorre <strong>nivel por nivel</strong> de izquierda a derecha, usando una
+            <strong>cola</strong>. Es el reporte por nivel N del TPO. <code>O(n)</code> tiempo.</p>
+          </div>
+          <div class="explain">
+            <h3>🔍 Búsqueda <span class="tag">O(log n)</span></h3>
+            <p>Desde la raíz, se compara con cada nodo y se baja a izquierda o derecha.
+            Promedio <code>O(log n)</code>, peor caso <code>O(n)</code> si el árbol está degenerado.</p>
+          </div>
+          <p class="footer-note">
+            Material de estudio — AyED II / Programación II (UADE) ·
+            <a href="/cuestionario">Volver al cuestionario</a> · <a href="/">App Logi-UADE</a>
+          </p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+  // =====================================================================
+  //  Árbol Binario de Búsqueda — lógica + animaciones, 100% client-side.
+  //  No toca la API REST: es una presentación didáctica autocontenida.
+  // =====================================================================
+
+  /* ---------- Modelo: BST con nodos {valor, izq, der} ---------- */
+  class Nodo {
+    constructor(valor) { this.valor = valor; this.izq = null; this.der = null; }
+  }
+
+  class BST {
+    constructor() { this.raiz = null; }
+
+    insertar(valor) {
+      if (this.raiz === null) { this.raiz = new Nodo(valor); return true; }
+      let actual = this.raiz;
+      while (true) {
+        if (valor === actual.valor) return false;          // sin duplicados
+        if (valor < actual.valor) {
+          if (actual.izq === null) { actual.izq = new Nodo(valor); return true; }
+          actual = actual.izq;
+        } else {
+          if (actual.der === null) { actual.der = new Nodo(valor); return true; }
+          actual = actual.der;
+        }
+      }
+    }
+
+    // Devuelve el camino de nodos comparados hasta encontrar (o no) el valor.
+    buscarCamino(valor) {
+      const camino = [];
+      let actual = this.raiz;
+      while (actual !== null) {
+        camino.push(actual);
+        if (valor === actual.valor) return { camino, encontrado: true };
+        actual = valor < actual.valor ? actual.izq : actual.der;
+      }
+      return { camino, encontrado: false };
+    }
+
+    // Eliminacion estandar; caso 2 hijos usa el sucesor in-orden (minimo del der).
+    eliminar(valor) {
+      let existia = false;
+      const elim = (nodo, v) => {
+        if (nodo === null) return null;
+        if (v < nodo.valor) { nodo.izq = elim(nodo.izq, v); return nodo; }
+        if (v > nodo.valor) { nodo.der = elim(nodo.der, v); return nodo; }
+        existia = true;
+        if (nodo.izq === null) return nodo.der;
+        if (nodo.der === null) return nodo.izq;
+        let suc = nodo.der;
+        while (suc.izq !== null) suc = suc.izq;
+        nodo.valor = suc.valor;
+        nodo.der = elim(nodo.der, suc.valor);
+        return nodo;
+      };
+      this.raiz = elim(this.raiz, valor);
+      return existia;
+    }
+
+    /* --- Recorridos: devuelven la lista de nodos en orden de VISITA --- */
+    inorden()  { const r = []; const go = n => { if (!n) return; go(n.izq); r.push(n); go(n.der); }; go(this.raiz); return r; }
+    preorden() { const r = []; const go = n => { if (!n) return; r.push(n); go(n.izq); go(n.der); }; go(this.raiz); return r; }
+    postorden(){ const r = []; const go = n => { if (!n) return; go(n.izq); go(n.der); r.push(n); }; go(this.raiz); return r; }
+    niveles() {
+      const r = []; if (!this.raiz) return r;
+      const cola = [this.raiz];
+      while (cola.length) {
+        const n = cola.shift();
+        r.push(n);
+        if (n.izq) cola.push(n.izq);
+        if (n.der) cola.push(n.der);
+      }
+      return r;
+    }
+  }
+
+  /* ---------- Layout: posicion in-orden -> x; profundidad -> y ---------- */
+  // Asignar x por indice in-orden garantiza que no se solapen los nodos.
+  function calcularLayout(raiz) {
+    const pos = new Map();   // nodo -> {x, y, profundidad}
+    let indice = 0;
+    const asignar = (nodo, profundidad) => {
+      if (!nodo) return;
+      asignar(nodo.izq, profundidad + 1);
+      pos.set(nodo, { col: indice++, prof: profundidad });
+      asignar(nodo.der, profundidad + 1);
+    };
+    asignar(raiz, 0);
+    return pos;
+  }
+
+  /* ---------- Estado de la app ---------- */
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const EJEMPLO = [50, 30, 70, 20, 40, 60, 80, 10, 25, 35, 45];
+  const COL_W = 56, ROW_H = 78, PAD_X = 40, PAD_Y = 44, R = 21;
+
+  const arbol = new BST();
+  let posiciones = new Map();
+  let svgWidth = 800, svgHeight = 400;
+
+  // Motor de animacion
+  const anim = {
+    pasos: [],        // [{tipo, nodo, ...}]
+    i: 0,
+    timer: null,
+    playing: false,
+    velocidad: 700,
+    tipoRecorrido: null,
+  };
+
+  const $ = sel => document.querySelector(sel);
+  const svg = $('#tree');
+  const statusBar = $('#statusBar');
+  const sequenceEl = $('#sequence');
+
+  /* ---------- Render del arbol ---------- */
+  function render(highlights = {}) {
+    posiciones = calcularLayout(arbol.raiz);
+    const n = posiciones.size;
+    if (n === 0) {
+      svgWidth = 800; svgHeight = 300;
+      svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+      svg.innerHTML = `<text x="${svgWidth/2}" y="${svgHeight/2}" text-anchor="middle"
+        fill="var(--text-dim)" font-size="16">Árbol vacío — insertá un valor para empezar.</text>`;
+      return;
+    }
+    let maxCol = 0, maxProf = 0;
+    posiciones.forEach(p => { maxCol = Math.max(maxCol, p.col); maxProf = Math.max(maxProf, p.prof); });
+    svgWidth  = (maxCol + 1) * COL_W + PAD_X * 2;
+    svgHeight = (maxProf + 1) * ROW_H + PAD_Y * 2 - (ROW_H - 2*R);
+    svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+
+    const xy = nodo => {
+      const p = posiciones.get(nodo);
+      return { x: PAD_X + p.col * COL_W + R, y: PAD_Y + p.prof * ROW_H };
+    };
+
+    let edges = '', nodes = '';
+    const dibujar = (nodo) => {
+      if (!nodo) return;
+      const { x, y } = xy(nodo);
+      [nodo.izq, nodo.der].forEach(hijo => {
+        if (!hijo) return;
+        const c = xy(hijo);
+        const cls = (highlights.pathEdges && highlights.pathEdges.has(hijo)) ? 'edge path' : 'edge';
+        edges += `<line class="${cls}" x1="${x}" y1="${y}" x2="${c.x}" y2="${c.y}" />`;
+        dibujar(hijo);
+      });
+    };
+    dibujar(arbol.raiz);
+
+    posiciones.forEach((p, nodo) => {
+      const { x, y } = xy(nodo);
+      let cls = 'node';
+      if (highlights.active === nodo)   cls += ' active';
+      else if (highlights.visited && highlights.visited.has(nodo)) cls += ' visited';
+      if (highlights.path && highlights.path.has(nodo)) cls += ' path';
+      if (highlights.found === nodo)    cls += ' found';
+      if (highlights.notfound === nodo) cls += ' notfound';
+      nodes += `<g class="${cls}"><circle cx="${x}" cy="${y}" r="${R}" /><text x="${x}" y="${y}">${nodo.valor}</text></g>`;
+    });
+
+    svg.innerHTML = edges + nodes;
+  }
+
+  /* ---------- Secuencia de visita ---------- */
+  function renderSecuencia(valores, currentIndex = -1) {
+    if (!valores.length) {
+      sequenceEl.innerHTML = '<span class="seq-empty">El orden de visita aparecerá acá.</span>';
+      return;
+    }
+    let html = '';
+    valores.forEach((v, i) => {
+      if (i > 0) html += '<span class="seq-arrow">→</span>';
+      html += `<span class="seq-chip${i === currentIndex ? ' current' : ''}">${v}</span>`;
+    });
+    sequenceEl.innerHTML = html;
+  }
+
+  function setStatus(html) { statusBar.innerHTML = html; }
+
+  /* ---------- Control de animacion de recorridos ---------- */
+  const NOMBRES = { inorden: 'In-orden', preorden: 'Pre-orden', postorden: 'Post-orden', niveles: 'Por niveles (BFS)' };
+
+  function detenerAnimacion() {
+    if (anim.timer) { clearTimeout(anim.timer); anim.timer = null; }
+    anim.playing = false;
+    anim.pasos = [];
+    anim.i = 0;
+    anim.tipoRecorrido = null;
+    actualizarBotonesRecorrido();
+    updatePlayPauseBtn();
+  }
+
+  function iniciarRecorrido(tipo) {
+    if (!arbol.raiz) { setStatus('El árbol está vacío.'); return; }
+    if (anim.timer) { clearTimeout(anim.timer); anim.timer = null; }
+    anim.tipoRecorrido = tipo;
+    anim.pasos = arbol[tipo]().map(nodo => ({ nodo }));
+    anim.i = 0;
+    anim.playing = true;
+    renderSecuencia([]);
+    actualizarBotonesRecorrido();
+    updatePlayPauseBtn();
+    reproducir();
+  }
+
+  // anim.i = indice del PROXIMO paso a pintar.
+  function reproducir() {
+    if (anim.i >= anim.pasos.length) { finRecorrido(); return; }
+    pintarPaso(anim.i);
+    anim.i++;
+    if (anim.i >= anim.pasos.length) { finRecorrido(); return; }
+    if (anim.playing) anim.timer = setTimeout(reproducir, anim.velocidad);
+  }
+
+  function pintarPaso(idx) {
+    const visitadosAntes = new Set(anim.pasos.slice(0, idx).map(p => p.nodo));
+    const actual = anim.pasos[idx].nodo;
+    render({ active: actual, visited: visitadosAntes });
+    const valores = anim.pasos.slice(0, idx + 1).map(p => p.nodo.valor);
+    renderSecuencia(valores, idx);
+    setStatus(`<span class="label-strong">${NOMBRES[anim.tipoRecorrido]}</span>
+      &nbsp;·&nbsp; visitando <strong>${actual.valor}</strong>
+      &nbsp;·&nbsp; paso ${idx + 1}/${anim.pasos.length}`);
+  }
+
+  function finRecorrido() {
+    if (anim.timer) { clearTimeout(anim.timer); anim.timer = null; }
+    anim.i = anim.pasos.length;
+    const todos = new Set(anim.pasos.map(p => p.nodo));
+    render({ visited: todos });
+    const valores = anim.pasos.map(p => p.nodo.valor);
+    renderSecuencia(valores, -1);
+    const extra = anim.tipoRecorrido === 'inorden'
+      ? ' &nbsp;·&nbsp; <em>los valores quedaron ordenados ascendentemente ✓</em>' : '';
+    setStatus(`<span class="label-strong">${NOMBRES[anim.tipoRecorrido]}</span>
+      &nbsp;·&nbsp; completado: <strong>${valores.join(', ')}</strong>${extra}`);
+    anim.playing = false;
+    updatePlayPauseBtn();
+  }
+
+  function togglePlayPause() {
+    if (!anim.pasos.length || anim.i >= anim.pasos.length) return;
+    anim.playing = !anim.playing;
+    updatePlayPauseBtn();
+    if (anim.playing) reproducir();
+    else if (anim.timer) { clearTimeout(anim.timer); anim.timer = null; }
+  }
+
+  function paso() {
+    if (!anim.pasos.length || anim.i >= anim.pasos.length) return;
+    anim.playing = false;
+    if (anim.timer) { clearTimeout(anim.timer); anim.timer = null; }
+    pintarPaso(anim.i);
+    anim.i++;
+    if (anim.i >= anim.pasos.length) finRecorrido();
+    updatePlayPauseBtn();
+  }
+
+  function updatePlayPauseBtn() {
+    const b = $('#btnPlayPause');
+    const enCurso = anim.pasos.length && anim.i < anim.pasos.length;
+    b.disabled = !enCurso;
+    b.innerHTML = anim.playing ? '⏸ Pausar' : '▶ Reproducir';
+    $('#btnPaso').disabled = !enCurso;
+  }
+
+  function actualizarBotonesRecorrido() {
+    document.querySelectorAll('.btn-traversal').forEach(b => {
+      b.classList.toggle('active', b.dataset.trav === anim.tipoRecorrido);
+    });
+  }
+
+  /* ---------- Busqueda animada ---------- */
+  function animarBusqueda(valor) {
+    detenerAnimacion();
+    const { camino, encontrado } = arbol.buscarCamino(valor);
+    if (!arbol.raiz) { setStatus('El árbol está vacío.'); return; }
+    const pathNodos = new Set();
+    const pathEdges = new Set();
+    let i = 0;
+    const step = () => {
+      if (i < camino.length) {
+        const nodo = camino[i];
+        if (i > 0) pathEdges.add(nodo);
+        render({ active: nodo, path: pathNodos, pathEdges });
+        const comp = nodo.valor === valor ? '¡igual! ✓'
+          : (valor < nodo.valor ? `${valor} &lt; ${nodo.valor} → izquierda` : `${valor} &gt; ${nodo.valor} → derecha`);
+        setStatus(`<span class="label-strong">🔍 Buscar ${valor}</span> &nbsp;·&nbsp; en nodo <strong>${nodo.valor}</strong>: ${comp}`);
+        pathNodos.add(nodo);
+        i++;
+        anim.timer = setTimeout(step, anim.velocidad);
+      } else {
+        if (encontrado) {
+          const found = camino[camino.length - 1];
+          render({ found, path: pathNodos, pathEdges });
+          setStatus(`<span class="label-strong">🔍 Buscar ${valor}</span> &nbsp;·&nbsp;
+            <strong style="color:var(--found)">encontrado</strong> tras ${camino.length} comparación(es).`);
+        } else {
+          const ultimo = camino[camino.length - 1];
+          render({ notfound: ultimo, path: pathNodos, pathEdges });
+          setStatus(`<span class="label-strong">🔍 Buscar ${valor}</span> &nbsp;·&nbsp;
+            <strong style="color:var(--notfound)">no está</strong> en el árbol (${camino.length} comparación(es)).`);
+        }
+      }
+    };
+    step();
+  }
+
+  /* ---------- Acciones de UI ---------- */
+  function insertar() {
+    const inp = $('#valorInput');
+    const v = parseInt(inp.value, 10);
+    if (Number.isNaN(v)) { setStatus('Ingresá un número válido para insertar.'); return; }
+    detenerAnimacion();
+    const ok = arbol.insertar(v);
+    render(ok ? { found: buscarNodo(v) } : {});
+    setStatus(ok ? `Insertado <strong>${v}</strong>.` : `El valor <strong>${v}</strong> ya existe (sin duplicados).`);
+    inp.value = ''; inp.focus();
+    renderSecuencia([]);
+  }
+
+  function eliminar() {
+    const inp = $('#valorInput');
+    const v = parseInt(inp.value, 10);
+    if (Number.isNaN(v)) { setStatus('Ingresá un número válido para eliminar.'); return; }
+    detenerAnimacion();
+    const ok = arbol.eliminar(v);
+    render();
+    setStatus(ok ? `Eliminado <strong>${v}</strong>.` : `El valor <strong>${v}</strong> no está en el árbol.`);
+    inp.value = ''; inp.focus();
+    renderSecuencia([]);
+  }
+
+  function buscarNodo(v) {
+    const r = arbol.buscarCamino(v);
+    return r.encontrado ? r.camino[r.camino.length - 1] : null;
+  }
+
+  function cargarEjemplo() {
+    detenerAnimacion();
+    arbol.raiz = null;
+    EJEMPLO.forEach(v => arbol.insertar(v));
+    render();
+    renderSecuencia([]);
+    setStatus('Árbol de ejemplo cargado. Probá un recorrido o buscá un valor.');
+    updatePlayPauseBtn();
+  }
+
+  function vaciar() {
+    detenerAnimacion();
+    arbol.raiz = null;
+    render();
+    renderSecuencia([]);
+    setStatus('Árbol vaciado. Insertá valores para construir el tuyo.');
+    updatePlayPauseBtn();
+  }
+
+  /* ---------- Wiring de eventos ---------- */
+  $('#btnInsertar').addEventListener('click', insertar);
+  $('#btnEliminar').addEventListener('click', eliminar);
+  $('#valorInput').addEventListener('keydown', e => { if (e.key === 'Enter') insertar(); });
+  $('#btnBuscar').addEventListener('click', () => {
+    const v = parseInt($('#buscarInput').value, 10);
+    if (Number.isNaN(v)) { setStatus('Ingresá un número válido para buscar.'); return; }
+    animarBusqueda(v);
+  });
+  $('#buscarInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { const v = parseInt(e.target.value, 10); if (!Number.isNaN(v)) animarBusqueda(v); }
+  });
+  document.querySelectorAll('.btn-traversal').forEach(b => {
+    b.addEventListener('click', () => iniciarRecorrido(b.dataset.trav));
+  });
+  $('#btnPlayPause').addEventListener('click', togglePlayPause);
+  $('#btnPaso').addEventListener('click', paso);
+  $('#btnReset').addEventListener('click', cargarEjemplo);
+  $('#btnVaciar').addEventListener('click', vaciar);
+  $('#velocidad').addEventListener('input', e => { anim.velocidad = parseInt(e.target.value, 10); });
+
+  /* ---------- Tema (sincronizado con el material de estudio) ---------- */
+  const themeBtn = $('#themeToggle');
+  function aplicarTema(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '🌙' : '☀️';
+  }
+  aplicarTema(localStorage.getItem('tpa2_theme') || 'dark');
+  themeBtn.addEventListener('click', () => {
+    const actual = document.documentElement.getAttribute('data-theme');
+    const nuevo = actual === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('tpa2_theme', nuevo);
+    aplicarTema(nuevo);
+  });
+
+  /* ---------- Init ---------- */
+  anim.velocidad = parseInt($('#velocidad').value, 10);
+  cargarEjemplo();
+  updatePlayPauseBtn();
+  </script>
+</body>
+</html>

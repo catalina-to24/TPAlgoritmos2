@@ -53,6 +53,25 @@ java -jar lib/junit-platform-console-standalone-1.11.3.jar execute \
 
 Java 21 o superior. El JDK **completo** (`openjdk-21-jdk`, no headless) solo era necesario para la antigua GUI Swing. Ahora con el web server headless alcanza.
 
+### Docker (forma canonica de correr el 7070)
+
+**El servidor que corre en `http://localhost:7070/` es el contenedor Docker `logiuade`**, no un `java` suelto. Si arrancas un `java -cp out ...` mientras el contenedor esta arriba, el puerto 7070 ya esta tomado y vas a estar viendo **codigo viejo** (el del contenedor) — un sintoma tipico es un 404 en una ruta que recien agregaste. Para verlo aislado podes levantar tu propio `java` en otro puerto (`--port 7071`).
+
+```bash
+# Imagen multi-stage: compila con javac (igual que arriba) y copia src/main/resources/web.
+# Ver Dockerfile (build con eclipse-temurin:21-jdk -> runtime con :21-jre).
+# docker-compose.yml mapea 7070:7070, monta ./data y ./clases, restart: always.
+
+# Aplicar cambios de codigo (Java o estaticos del front): rebuild + restart.
+docker compose down && docker compose up -d --build
+
+# Logs / estado
+docker compose logs -f logiuade
+docker ps | grep logiuade
+```
+
+Como el `Dockerfile` recompila desde `src/`, **cualquier cambio en `.java` o en `src/main/resources/web/` requiere `--build`** — un simple `restart` re-corre la imagen vieja. El contenedor corre como root, asi que su proceso `java` no se puede matar con `kill` desde el usuario `clawdio`; usa `docker compose down`.
+
 ## Arquitectura
 
 Capas, de adentro hacia afuera:
